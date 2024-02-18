@@ -1,0 +1,35 @@
+.doctors-slider {
+    .slick-track {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .prev,
+    .next {
+        margin-top: 200px;
+        color: rgb(35, 35, 196);
+        position: absolute;
+        top: 0;
+    }
+
+    .prev {
+        left: 10px;
+    }
+
+    .next {
+        right: 10px;
+    }
+
+    .arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 25px;
+        background-color: rgb(143, 160, 214); /* Màu nền của mũi tên */
+        border-color: 1px solid rgb(35, 35, 196);
+        background-size: cover;
+        cursor: pointer;
+    }
+}

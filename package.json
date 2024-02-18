@@ -1,0 +1,35 @@
+{
+  "name": "codebase",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "autoprefixer": "10.4.15",
+    "axios": "^1.5.0",
+    "date-fns": "^3.0.6",
+    "eslint": "8.49.0",
+    "eslint-config-next": "13.4.19",
+    "jwt-decode": "^3.1.2",
+    "next": "13.4.19",
+    "postcss": "8.4.29",
+    "react": "18.2.0",
+    "react-datepicker": "^4.25.0",
+    "react-dom": "18.2.0",
+    "react-slick": "^0.29.0",
+    "react-toastify": "^9.1.3",
+    "slick-carousel": "^1.8.1",
+    "tailwindcss": "3.3.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.22.19",
+    "@babel/node": "^7.22.19",
+    "@babel/plugin-proposal-class-properties": "^7.18.6",
+    "@babel/preset-env": "^7.22.15",
+    "prettier": "^3.0.3"
+  }
+}
