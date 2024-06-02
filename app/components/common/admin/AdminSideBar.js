@@ -1,7 +1,15 @@
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
+import { logout } from '../../../../redux/reducers/authSlice'
+import { useDispatch } from 'react-redux'
+import authApi from '../../../api/auth/AuthApi'
+import toasts from '../../common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
+
 
 const AdminSideBar = () => {
+    const dispatch = useDispatch()
     const [selectedLink, setSelectedLink] = useState(null)
 
     const handleLinkClick = (link) => {
@@ -13,6 +21,13 @@ const AdminSideBar = () => {
         const currentPath = window.location.pathname
         setSelectedLink(currentPath)
     }, [])
+
+    const handleLogOut = async () => {
+        let res = await authApi.logout()
+        dispatch(logout())
+        localStorage.removeItem('accessToken')
+        toasts.successTopCenter('Đăng xuất thành công !')
+    }
 
     return (
         <aside className='bg-white w-1/5 py-10 pl-10 border-r border-indigo-900/20 hidden md:block '>
@@ -60,14 +75,15 @@ const AdminSideBar = () => {
                     <i className='fa-sharp fa-light fa-calendar-check font-light text-lg w-1/5'></i>
                     <span>Lịch khám</span>
                 </Link>
-                <Link
-                    className={`flex flex-row gap-4 text-center w-full items-center space-x-2 py-1 group hover:border-r-2 hover:border-r-indigo-700 hover:font-semibold`}
-                    href='/login'
+                <div
+                    className={`flex flex-row gap-4 text-center w-full items-center space-x-2 py-1 group hover:border-r-2 hover:border-r-indigo-700 hover:font-semibold cursor-pointer`}
+                    onClick={handleLogOut}
                 >
                     <i className='fa-light fa-right-from-bracket font-light text-lg w-1/5'></i>
                     <span>Đăng xuất</span>
-                </Link>
+                </div>
             </div>
+            <ToastContainer />
         </aside>
     )
 }

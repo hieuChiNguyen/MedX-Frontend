@@ -8,7 +8,8 @@ const assets = {
         doctorCard: require('./images/doctor-card.png'),
         posterDoctor: require('./images/poster-doctor.jpg'),
         doctorSample: require('./images/doctor-sample.jpg'),
-        CoXuongKhop: require('./images/coxuongkhop.png')
+        CoXuongKhop: require('./images/coxuongkhop.png'),
+        avatar: require('./images/avatar.jpg'),
     }
 }
 

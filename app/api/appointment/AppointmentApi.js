@@ -1,22 +1,31 @@
-import axiosClient from '@/app/api/axiosClient'
+import axiosJwt from '../axiosJwt'
 
 const appointmentApi = {
     createNewAppointment: async (input) => {
-        console.log('Check new data: ', input)
-        const response = await axiosClient.post('/api/v1/appointment/create-new-appointment', input)
-        console.log('Response: ', response)
+        const response = await axiosJwt.post('/api/v1/appointment/create', input)
         return response
     },
 
     getAllAppointments: async () => {
-        const response = await axiosClient.get('/api/v1/appointment/list-appointments')
+        const response = await axiosJwt.get('/api/v1/appointment')
         return response
     },
 
-    getDaysOfWeek: async () => {
-        const response = await axiosClient.get('/api/v1/appointment/list-days')
+    getAppointmentById: async (appointmentId) => {
+        const response = await axiosJwt.get(`api/v1/appointment/${appointmentId}`)
         return response
-    }
+    },
+
+    addDoctorToAppointment: async (request) => {
+        const response = await axiosJwt.post('/api/v1/appointment/doctor/schedule', request)
+        return response
+    },
+
+    getAppointmentPatientHistory: async (patientId) => {
+        const response = await axiosJwt.get(`/api/v1/appointments/history/${patientId}`)
+        return response
+    },
+
 }
 
 export default appointmentApi

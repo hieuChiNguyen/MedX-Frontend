@@ -1,32 +1,41 @@
-import axiosClient from '@/app/api/axiosClient'
+import axiosClient from '../axiosClient'
+import axiosJwt from '../axiosJwt'
 
 const patientApi = {
     createNewPatient: async (input) => {
-        console.log('Check new data: ', input)
-        const response = await axiosClient.post('/api/v1/patient/create-new-patient', input)
-        console.log('Response: ', response)
+        const response = await axiosJwt.post('/api/v1/patient/create', input)
         return response
     },
 
     getAllPatients: async () => {
-        const response = await axiosClient.get('/api/v1/patient/list-patients')
+        const response = await axiosJwt.get(`/api/v1/patients`)
         return response
     },
 
     getAllProvinces: async () => {
-        const response = await axiosClient.get('/api/v1/patient/list-provinces')
+        const response = await axiosClient.get('/api/v1/provinces')
         return response
     },
 
-    getAllDistricts: async (provinceCode) => {
-        const response = await axiosClient.get(`/api/v1/patient/list-districts/${provinceCode}`)
+    getAllDistricts: async (provinceId) => {
+        const response = await axiosClient.get(`/api/v1/districts/${provinceId}`)
         return response
     },
 
-    getAllWards: async (districtCode) => {
-        const response = await axiosClient.get(`/api/v1/patient/list-wards/${districtCode}`)
+    getAllWards: async (districtId) => {
+        const response = await axiosClient.get(`/api/v1/wards/${districtId}`)
         return response
-    }
+    },
+
+    getPatientInformation: async (patientId) => {
+        const response = await axiosJwt.get(`/api/v1/information/${patientId}`)
+        return response
+    },
+
+    uploadAvatar: async (data) => {
+        const response = await axiosClient.put('/api/v1/user/update-avatar', data)
+        return response
+    },
 }
 
 export default patientApi

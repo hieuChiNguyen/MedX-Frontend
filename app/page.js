@@ -3,26 +3,30 @@ import Link from 'next/link'
 import Footer from '../app/components/common/Footer'
 import Header from '../app/components/common/Header'
 import Navbar from '../app/components/common/Navbar'
-import assets from '@/assets'
+import assets from '../assets'
 import Image from 'next/image'
-import DoctorCard from '../app/components/doctor/DoctorCard'
-import SideBarMenu from './components/common/SideBarMenu'
 import { useState, useEffect } from 'react'
 import doctorApi from './api/doctor/DoctorApi'
 import DoctorsList from './components/doctor/DoctorList'
+import SpecialtyList from './components/doctor/SpecialtyList'
 
 const HomePage = () => {
-    const [isOpenSidebar, setIsOpenSidebar] = useState(false)
     const [listDoctors, setListDoctors] = useState([])
-
-    const openSidebar = () => {
-        setIsOpenSidebar(true)
-    }
+    const [listSpecialties, setListSpecialties] = useState([])
 
     const getListDoctors = async () => {
         try {
-            let response = await doctorApi.getAllDoctors()
+            let response = await doctorApi.getAllActiveDoctors()
             setListDoctors(response.data)
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+    const getListSpecialties = async () => {
+        try {
+            let response = await doctorApi.getTopSpecialties()
+            setListSpecialties(response.data)
         } catch (error) {
             console.log(error)
         }
@@ -30,40 +34,13 @@ const HomePage = () => {
 
     useEffect(() => {
         getListDoctors()
-        console.log('check list doctors home: ', listDoctors)
+        getListSpecialties()
     }, [])
-
-    const closeSidebar = (event) => {
-        // Check if the clicked element is not part of the sidebar
-        if (isOpenSidebar == true && !event.target.closest('.sidebar-container')) {
-            setIsOpenSidebar(false)
-        }
-    }
-
-    useEffect(() => {
-        // Attach event listener when the component mounts if the sidebar is open
-        if (isOpenSidebar) {
-            document.addEventListener('click', closeSidebar)
-        }
-
-        // Detach event listener when the component unmounts
-        return () => {
-            document.removeEventListener('click', closeSidebar)
-        }
-    }, [isOpenSidebar])
 
     return (
         <main>
-            {isOpenSidebar == true ? (
-                <>
-                    <SideBarMenu isOpenSidebar={isOpenSidebar} />
-                </>
-            ) : (
-                <></>
-            )}
-
-            <section className={`${isOpenSidebar ? 'bg-gray-500 opacity-60' : ''}`} onClick={closeSidebar}>
-                <Header openSidebar={openSidebar} />
+            <section>
+                <Header />
                 <Navbar />
 
                 <section className='relative'>
@@ -75,21 +52,21 @@ const HomePage = () => {
                         />
                     </div>
                     <div className='flex flex-row justify-around text-center font-medium w-[80%] mx-auto relative -top-8 left-0'>
-                        <Link href='/home/doctors' className='flex flex-row justify-between'>
+                        <Link href='/book-appointment' className='flex flex-row justify-between'>
                             <div className='flex flex-row p-4 bg-blue-300 w-60 gap-5 text-xl text-center justify-center rounded-md cursor-pointer'>
                                 <p className='text-lg'>Đặt lịch khám</p>
                                 <i className='fa-sharp fa-light fa-calendar-days font-medium'></i>
                             </div>
                         </Link>
 
-                        <Link href='/home/doctors' className='flex flex-row justify-between'>
+                        <Link href='/doctors' className='flex flex-row justify-between'>
                             <div className='flex flex-row p-4 bg-blue-300 w-60 gap-5 text-xl text-center justify-center rounded-md cursor-pointer '>
                                 <p className='text-lg'>Bác sĩ</p>
                                 <i className='fa-light fa-user-doctor font-medium'></i>
                             </div>
                         </Link>
 
-                        <Link href='/home/specialties' className='flex flex-row justify-between'>
+                        <Link href='/specialties' className='flex flex-row justify-between'>
                             <div className='flex flex-row p-4 bg-blue-300 w-60 gap-5 text-xl text-center justify-center rounded-md cursor-pointer'>
                                 <p className='text-lg'>Chuyên khoa</p>
                                 <i className='fa-regular fa-list font-medium'></i>
@@ -109,7 +86,7 @@ const HomePage = () => {
 
                             <p>MedX là nơi bạn có thể trao trọn niềm tin</p>
                         </div>
-                        <Link href='/home/about' className='text-center justify-center mx-auto'>
+                        <Link href='/about' className='text-center justify-center mx-auto'>
                             <div className='flex flex-row gap-1'>
                                 <p className='text-blue-400'>Xem thêm</p>
                                 <i className='fa-sharp fa-solid fa-arrow-right text-blue-800 '></i>
@@ -131,6 +108,13 @@ const HomePage = () => {
 
                     <p className='text-blue-500 font-semibold text-xl'>Bác sĩ của MedX</p>
 
+                    <Link href='/doctors' className='text-center justify-center mx-auto'>
+                        <div className='flex flex-row gap-1'>
+                            <p className='text-blue-400'>Xem thêm</p>
+                            <i className='fa-sharp fa-solid fa-arrow-right text-blue-800 '></i>
+                        </div>
+                    </Link>
+
                     <DoctorsList listDoctors={listDoctors} />
                 </section>
 
@@ -142,12 +126,16 @@ const HomePage = () => {
                         </p>
                     </div>
 
+                    <Link href='/specialties' className='text-center justify-center mx-auto'>
+                        <div className='flex flex-row gap-1'>
+                            <p className='text-blue-400'>Xem thêm</p>
+                            <i className='fa-sharp fa-solid fa-arrow-right text-blue-800 '></i>
+                        </div>
+                    </Link>
+
                     <p className='text-blue-500 font-semibold text-xl'>Chuyên khoa của MedX</p>
-                    <div className='flex flex-row justify-around'>
-                        <DoctorCard />
-                        <DoctorCard />
-                        <DoctorCard />
-                    </div>
+                    
+                    <SpecialtyList listSpecialties={listSpecialties}/>
                 </section>
                 <Footer />
             </section>

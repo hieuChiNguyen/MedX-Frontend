@@ -1,4 +1,7 @@
+import { RoleEnum } from '../../../utils/enum/role.enum'
 import Link from 'next/link'
+import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
 
 const Navbar = () => {
     const tabs = [
@@ -7,26 +10,33 @@ const Navbar = () => {
             name: 'Trang chủ'
         },
         {
-            link: '/home/about',
+            link: '/about',
             name: 'Về chúng tôi'
         },
         {
-            link: '/home/services',
-            name: 'Dịch vụ'
-        },
-        {
-            link: '/home/doctors',
+            link: '/doctors',
             name: 'Bác sĩ'
         },
         {
-            link: '/home/specialties',
+            link: '/specialties',
             name: 'Chuyên khoa'
         },
         {
-            link: '/home/news',
+            link: '/news',
             name: 'Bản tin'
         }
     ]
+
+    const [showModalUserMenu, setShowModalUserMenu] = useState(false)
+    const authState = useSelector((state) => state.auth)
+
+    const openModalUserMenu = () => {
+        setShowModalUserMenu(true)
+    }
+
+    const closeModalUserMenu = () => {
+        setShowModalUserMenu(false)
+    }
 
     return (
         <nav className='flex flex-row justify-around bg-blue-800 py-5 text-white text-center'>
@@ -37,14 +47,21 @@ const Navbar = () => {
                     </Link>
                 ))}
             </div>
-
+            
             <div className='flex flex-row gap-10 '>
                 <i className='fa-regular fa-magnifying-glass' style={{ fontSize: '20px' }}></i>
-                <Link href='/patient-info'>
-                    <button type='button' className='bg-blue-400 px-8 rounded-2xl py-1 hover:bg-red-400'>
-                        Đặt khám
-                    </button>
-                </Link>
+                {
+                    (authState.loggedIn && authState.role === RoleEnum.PATIENT) ? 
+                        <div className='text-white text-center text-lg'>
+                            Xin chào, {authState.username}
+                        </div>
+                        :
+                        <Link href='/login' >
+                            <button type='button' className='bg-blue-400 px-8 rounded-2xl py-1 hover:bg-red-400'>
+                                Đăng nhập
+                            </button>
+                        </Link>     
+                }
             </div>
         </nav>
     )

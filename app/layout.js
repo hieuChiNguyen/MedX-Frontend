@@ -1,5 +1,8 @@
+'use client'
+import { Provider } from 'react-redux'
+import { store } from '../redux/store'
 import './globals.css'
-import '@/assets/font_awesome_6_pro/css/all.min.css'
+import '../assets/font_awesome_6_pro/css/all.min.css'
 
 export const metadata = {
     title: 'MedX',
@@ -8,8 +11,12 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
     return (
-        <html lang='en'>
-            <body suppressHydrationWarning={true}>{children}</body>
-        </html>
+        <Provider store={store}>
+                <html lang='en'>
+                    <body suppressHydrationWarning={true}>
+                        <main>{children}</main>
+                    </body>
+                </html> 
+        </Provider>
     )
 }

@@ -1,14 +1,23 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import authApi from '../api/auth/AuthApi'
+import { useDispatch } from 'react-redux'
+import { login } from '../../redux/reducers/authSlice'
+import toasts from '../components/common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
-const LogIn = () => {
+const LogInPage = () => {
     const router = useRouter()
+    const dispatch = useDispatch()
 
     const [input, setInput] = useState({
         email: '',
         password: ''
     })
+
+    const [errorMessage, setErrorMessage] = useState('')
 
     const handleChange = (e) => {
         e.preventDefault()
@@ -17,26 +26,63 @@ const LogIn = () => {
             [e.target.name]: e.target.value
         })
     }
-
-    useEffect(() => {
-        console.log('check login input: ', input)
-    }, [input])
-
+   
     const handleKeyDown = async (e) => {
         if (e.key === 'Enter') {
             requireLogin()
         }
     }
 
-    const requireLogin = () => {
-        if (input.email == 'admin@gmail.com' && input.password == 'admin') {
-            router.push('/admin/dashboard')
-        }
-        if (input.email == 'doctor@gmail.com' && input.password == 'doctor') {
-            router.push('/doctor/')
+    const requireLogin = async () => {
+        setErrorMessage('')
+
+        try {
+            let loginResponse = await authApi.login(input.email, input.password)
+
+            // Fail to  login
+            if (loginResponse?.errCode !== 0) {
+                setErrorMessage(loginResponse.message)
+            }
+
+            // Success to login
+            if (loginResponse && loginResponse.errCode === 0) {
+                // Save access token into local storage
+                localStorage.setItem('accessToken', loginResponse.data.accessToken)
+
+                toasts.successTopCenter('Đăng nhập thành công !')
+
+                const user = {
+                    loggedIn: true,
+                    id: loginResponse.data.id,
+                    email: loginResponse.data.email,
+                    username: loginResponse.data.username,
+                    role: loginResponse.data.role,
+                    doctorId: loginResponse.data?.doctorId ?? '',
+                    doctorStatus: loginResponse.data?.doctorStatus ?? '',
+                    doctorPosition: loginResponse.data?.doctorPosition ?? ''
+                }
+
+                dispatch(login(user))
+
+                if (user.role === 'Admin') {
+                    setTimeout(function () {
+                        router.push('/admin/dashboard')
+                    }, 2000)
+                } else if(user.role === 'Doctor') {
+                    setTimeout(function () {
+                        router.push('/doctor')
+                    }, 2000)
+                } else {
+                    setTimeout(function() {
+                        router.push('/')
+                    }, 2000)
+                }
+            }
+        } catch (error) {
+            console.log(error)
         }
     }
-
+    
     return (
         <main>
             <section className='bg-gray-50 dark:bg-gray-900'>
@@ -110,6 +156,10 @@ const LogIn = () => {
                                         Quên mật khẩu?
                                     </a>
                                 </div>
+
+                                {/* Error Notification */}
+                                <div className='w-full text-red-600 text-center text-sm'>{errorMessage}</div>
+
                                 <button
                                     type='button'
                                     className='w-full text-16 text-white bg-blue-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg px-5 py-2 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800'
@@ -120,10 +170,10 @@ const LogIn = () => {
                                 <p className='text-sm font-light text-gray-500 dark:text-gray-400'>
                                     Bạn chưa có tài khoản?{' '}
                                     <a
-                                        href='/patient-info'
+                                        href='/register'
                                         className='font-semibold text-primary-600 hover:underline dark:text-primary-500'
                                     >
-                                        Đăng ký khám bệnh
+                                        Đăng ký tài khoản
                                     </a>
                                 </p>
                                 <p className='text-sm font-light text-gray-500 dark:text-gray-400'>
@@ -139,8 +189,9 @@ const LogIn = () => {
                     </div>
                 </div>
             </section>
-        </main>
+            <ToastContainer />
+        </main>  
     )
 }
 
-export default LogIn
+export default LogInPage

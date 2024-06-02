@@ -1,8 +1,9 @@
 import axios from 'axios'
 import toasts from '../components/common/Toast'
+require('dotenv').config()
 
 const axiosClient = axios.create({
-    baseURL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:9000',
+    baseURL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080',
     headers: {
         'content-type': 'application/json',
         'Cache-Control': 'no-cache'
@@ -11,15 +12,13 @@ const axiosClient = axios.create({
     withCredentials: 'include'
 })
 
-axiosClient.interceptors.response.use((response) => {
-    if (response.status !== 200 || response.status !== 201) {
-        if (response.data.message === 'ERROR') {
-            toasts.errorTopRight(response.data.data)
-        }
+axiosClient.interceptors.response.use(
+    (response) => {
+        return response.data
+    },
+    (error) => {
+        return error.response.data
     }
-
-    // console.log('check axiosClient: ', response)
-    return response.data
-})
+)
 
 export default axiosClient

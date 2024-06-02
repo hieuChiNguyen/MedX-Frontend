@@ -1,8 +1,19 @@
 'use client'
 import '../dashboard.css'
 import AdminSideBar from '../../components/common/admin/AdminSideBar'
+import { useSelector } from 'react-redux'
+import { RoleEnum } from '../../../utils/enum/role.enum'
+import { useRouter } from 'next/navigation'
 
 const AdminDashboardPage = () => {
+    const router = useRouter();
+    const auth = useSelector(state => state.auth);
+
+    if (auth.role !== RoleEnum.ADMIN) {
+        router.push('/login');
+        return null;
+    }
+
     return (
         <main className='w-screen flex 2xl:mx-auto 2xl:border-x-2 2xl:border-indigo-50 '>
             <AdminSideBar />
@@ -55,7 +66,7 @@ const AdminDashboardPage = () => {
                                     ></path>
                                 </svg>
                             </span>
-                            <span className='hidden sm:block'>Settings</span>
+                            <span className='hidden sm:block'>Cài đặt</span>
                         </a>
                         <a
                             className='px-4 py-2 bg-indigo-100 rounded-md flex items-center space-x-2 text-indigo-500 hover:bg-indigo-200'
@@ -90,7 +101,7 @@ const AdminDashboardPage = () => {
 
                 <div>
                     <div className='bg-rose-100/70 mt-12  rounded-xl px-5 sm:px-10  pt-8 pb-4 relative bg-no-repeat bg-right bg-contain '>
-                        <div className='text-rose-400 font-semibold text-lg'>Statistics</div>
+                        <div className='text-rose-400 font-semibold text-lg'>Thống kê</div>
 
                         <div className='mt-6 grid grid-cols-1 xs:grid-cols-2 gap-y-6  gap-x-6 md:flex md:space-x-6 md:gap-x-0 '>
                             <div className='flex flex-col  md:w-40  text-gray-600 text-sm space-y-2 font-semibold'>
@@ -215,7 +226,7 @@ const AdminDashboardPage = () => {
                         </div>
 
                         <div className='mt-5 text-gray-500 text-sm '>
-                            * This data has been shown according to your given information
+                            * Dữ liệu sẽ hiển thị theo thông tin được cung cấp
                         </div>
                     </div>
                 </div>

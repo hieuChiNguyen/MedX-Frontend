@@ -1,20 +1,12 @@
 'use client'
-import Footer from '@/app/components/common/Footer'
-import Header from '@/app/components/common/Header'
-import Navbar from '@/app/components/common/Navbar'
-import DoctorCooperateForm from '@/app/components/doctor/DoctorCooperateForm'
+import DoctorRegisterForm from '../../components/doctor/DoctorRegisterForm'
 
 const DoctorRegister = () => {
     return (
         <main>
-            <Header />
-            <Navbar />
-
             <section className='my-5'>
-                <DoctorCooperateForm />
+                <DoctorRegisterForm />
             </section>
-
-            <Footer />
         </main>
     )
 }

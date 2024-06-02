@@ -1,18 +1,17 @@
-import { useState } from 'react'
-import assets from '@/assets'
+import assets from '../../../assets'
 import Image from 'next/image'
+import { useSelector } from 'react-redux'
+import Profile from './Profile'
+import { RoleEnum } from '../../../utils/enum/role.enum'
 import Link from 'next/link'
 
-const Header = ({ openSidebar }) => {
+const Header = () => {
+    const authState = useSelector((state) => state.auth)
     return (
         <>
             <header className='flex flex-row justify-around mx-auto p-2'>
-                <div className='flex flex-row gap-5 uppercase font-bold text-4xl my-auto'>
-                    <i
-                        onClick={openSidebar}
-                        className='fa-sharp fa-regular fa-bars cursor-pointer hover:text-blue-500'
-                    ></i>
-                    <Link href='/' className='text-black '>
+                <div className='uppercase font-bold text-5xl my-auto'>
+                    <Link href={`${authState.role === RoleEnum.PATIENT ? '/' : '/doctor'}`} className='text-black cursor-pointer'>
                         Med
                         <span className='text-blue-400'>X</span>
                     </Link>
@@ -35,7 +34,7 @@ const Header = ({ openSidebar }) => {
                         </div>
                         <div className='flex flex-col gap-1'>
                             <p className='font-semibold'>Giờ làm việc</p>
-                            <p className='text-blue-400'>09:00 - 20:00 Hằng ngày</p>
+                            <p className='text-blue-400'>08:00 - 18:00 Hằng ngày</p>
                         </div>
                     </div>
 
@@ -48,6 +47,11 @@ const Header = ({ openSidebar }) => {
                             <p className='text-blue-400'>Số 1 Giải Phóng</p>
                         </div>
                     </div>
+                    {
+                        (authState.role === RoleEnum.PATIENT || authState.role === RoleEnum.DOCTOR) && (
+                            <Profile />  
+                        )
+                    }
                 </div>
             </header>
         </>
