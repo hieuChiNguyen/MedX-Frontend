@@ -110,6 +110,7 @@ const DoctorRegisterForm = () => {
 
                             <address className='mt-10 not-italic'>Địa chỉ Số 1 Giải Phóng</address>
                         </div>    
+                        <Link href={'/doctor'} className="mt-4 inline-block text-blue-500 hover:underline">Quay lại trang chủ</Link>
                     </div>
         
                     <div className='rounded-lg bg-white p-8 shadow-lg lg:col-span-3 lg:p-10'>

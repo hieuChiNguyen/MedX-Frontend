@@ -132,10 +132,11 @@ const AppointmentInformationPage = ({params}) => {
       const response = await doctorApi.findSuitableDoctors(input);
       if (response.errCode === 0) {
         setSuitableDoctors(response.data);
+      } else {
+        toasts.errorTopRight(response.message)
       }
     } catch (error) {
-      console.error('Error fetching suitable doctors:', error);
-      toasts.errorTopRight(error.response.data.message)
+      console.error('Error fetching suitable doctors:', error)
     }
   }
 
@@ -289,8 +290,8 @@ const AppointmentInformationPage = ({params}) => {
                           className="w-full rounded border bg-blue-50 py-3 px-2 text-black focus:border-blue-600 focus-visible:outline-none"
                           name="specialty"
                           id="specialty"
-                          placeholder="Ngày hẹn"
-                          defaultValue={formatDate(appointment?.appointmentDate)}
+                          placeholder="Chuyên khoa"
+                          defaultValue={appointment?.specialtyAppointment?.nameVi}
                         />
                       </div>
                     </div>

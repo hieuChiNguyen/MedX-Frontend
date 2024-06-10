@@ -14,7 +14,6 @@ import 'react-toastify/dist/ReactToastify.css'
 function Profile() {
     const dispatch = useDispatch()
     const authState = useSelector((state) => state.auth)
-    const doctorState = useSelector((state) => state.doctor)
 
     let profile_name, history_name
     if (authState.role === RoleEnum.PATIENT) {
@@ -36,11 +35,11 @@ function Profile() {
     }
 
     const handleLogOut = async () => {
+        toasts.successTopCenter('Đăng xuất thành công.')
         let res = await authApi.logout()
         dispatch(logout())
         setShowProfileMenu(!showProfileMenu)
         localStorage.removeItem('accessToken')
-        toasts.successTopCenter('Đăng xuất thành công !')
     }
 
     return (

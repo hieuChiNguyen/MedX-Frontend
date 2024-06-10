@@ -249,16 +249,10 @@ const DoctorInformationPage = () => {
 
                                     <div className="flex justify-end gap-5">
                                         <button
-                                            className="flex justify-center rounded border border-stroke py-2 px-6 font-medium text-black hover:bg-gray-100"
-                                            type="submit"
-                                        >
-                                            Sửa
-                                        </button>
-                                        <button
                                             className="flex justify-center rounded bg-blue-400 py-2 px-6 font-medium text-gray hover:bg-opacity-80"
                                             type="submit"
                                         >
-                                            Lưu
+                                            Sửa
                                         </button>
                                     </div>
                                 </form>

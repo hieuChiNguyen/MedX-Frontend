@@ -11,7 +11,7 @@ const Header = () => {
         <>
             <header className='flex flex-row justify-around mx-auto p-2'>
                 <div className='uppercase font-bold text-5xl my-auto'>
-                    <Link href={`${authState.role === RoleEnum.PATIENT ? '/' : '/doctor'}`} className='text-black cursor-pointer'>
+                    <Link href={`${authState.role === RoleEnum.DOCTOR ? '/doctor' : '/'}`} className='text-black cursor-pointer'>
                         Med
                         <span className='text-blue-400'>X</span>
                     </Link>

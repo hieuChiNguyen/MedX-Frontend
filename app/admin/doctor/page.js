@@ -12,35 +12,43 @@ const AdminDoctorPage = () => {
     const router = useRouter();
     const auth = useSelector(state => state.auth);
 
-    if (auth.role !== RoleEnum.ADMIN) {
+    if (auth.role === RoleEnum.PATIENT || auth.role === RoleEnum.DOCTOR || auth.role === '') {
         router.push('/login');
+        return null;
+    }
+
+    if (auth?.role === RoleEnum.RECEPTIONIST) {
+        router.push('/admin/dashboard');
+        alert('Trang này chỉ dành cho Admin')
         return null;
     }
 
     const [listDoctors, setListDoctors] = useState([])
     const [specialties, setSpecialties] = useState([])
+    const [doctorStatus, setDoctorStatus] = useState(0)
+    const [specialtyId, setSpecialtyId] = useState('all')
     const [currentPage, setCurrentPage] = useState(1);
-    const doctorsPerPage = 1;
+    const doctorsPerPage = 5;
 
-    // Tính toán chỉ danh sách bác sĩ ở trang hiện tại
     const indexOfLastDoctor = currentPage * doctorsPerPage;
     const indexOfFirstDoctor = indexOfLastDoctor - doctorsPerPage;
-    const currentDoctors = listDoctors.slice(indexOfFirstDoctor, indexOfLastDoctor);
+    const currentDoctors = listDoctors && listDoctors.length > 0 ? listDoctors.slice(indexOfFirstDoctor, indexOfLastDoctor) : []
 
+    const totalDoctors = listDoctors ? listDoctors.length : 0;
     const pageNumbers = [];
-    for (let i = 1; i <= Math.ceil(listDoctors.length / doctorsPerPage); i++) {
+    for (let i = 1; i <= Math.ceil(totalDoctors / doctorsPerPage); i++) {
         pageNumbers.push(i);
     }
     
-    // Thay đổi trang
+    // Chuyển trang
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const getAllDoctors = async () => {
         try {
-            let response = await doctorApi.getAllDoctors()
+            let response = await doctorApi.getAllDoctors(doctorStatus, specialtyId)
             setListDoctors(response.data)
         } catch (error) {
-            console.log(error)
+            console.log('Error fetching doctors: ', error)
         }
     }
 
@@ -49,12 +57,15 @@ const AdminDoctorPage = () => {
           const response = await doctorApi.getAllSpecialties();
           setSpecialties(response.data); 
         } catch (error) {
-          console.error('Error fetching specialties:', error);
+          console.error('Error fetching specialties: ', error);
         }
     };
 
     useEffect(() => {
         getAllDoctors()
+    }, [doctorStatus, specialtyId])
+
+    useEffect(() => {
         getListSpecialties()
     }, [])
 
@@ -66,52 +77,6 @@ const AdminDoctorPage = () => {
                     <div className=' font-semibold text-xl text-gray-800 flex space-x-4 items-center'>
                         <span className='px-3'>Quản lý bác sĩ</span>
                     </div>
-
-                    <div className='flex space-x-5 md:space-x-10 text-gray-500 items-center content-center text-base '>
-                        <a className='flex items-center space-x-3 px-4 py-2 rounded-md  hover:bg-indigo-100' href='#'>
-                            <span>
-                                <svg
-                                    className='h-5 w-5'
-                                    xmlns='http://www.w3.org/2000/svg'
-                                    fill='none'
-                                    viewBox='0 0 24 24'
-                                    stroke='currentColor'
-                                >
-                                    <path
-                                        stroke-linecap='round'
-                                        stroke-linejoin='round'
-                                        stroke-width='2'
-                                        d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
-                                    ></path>
-
-                                    <path
-                                        stroke-linecap='round'
-                                        stroke-linejoin='round'
-                                        stroke-width='2'
-                                        d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-                                    ></path>
-                                </svg>
-                            </span>
-                            <span className='hidden sm:block'>Cài đặt</span>
-                        </a>
-                        <a
-                            className='px-4 py-2 bg-indigo-100 rounded-md flex items-center space-x-2 text-indigo-500 hover:bg-indigo-200'
-                            href='#'
-                        >
-                            <svg
-                                className='h-5 w-5 fill-indigo-500'
-                                xmlns='http://www.w3.org/2000/svg'
-                                viewBox='0 0 20 20'
-                                fill='currentColor'
-                            >
-                                <path
-                                    fill-rule='evenodd'
-                                    d='M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z'
-                                    clip-rule='evenodd'
-                                ></path>
-                            </svg>
-                        </a>
-                    </div>
                 </nav>
 
                 <div>
@@ -119,79 +84,18 @@ const AdminDoctorPage = () => {
                         <div className='text-rose-500 font-semibold text-lg'>Thống kê</div>
 
                         <div className='mt-6 grid grid-cols-1 xs:grid-cols-2 gap-y-6  gap-x-6 md:flex md:space-x-6 md:gap-x-0 '>
-                            <div className='flex flex-col  md:w-40  text-gray-600 text-sm space-y-2 font-semibold'>
-                                <label htmlFor='client'>Từ ngày</label>
-                                <div className='inline-flex relative'>
-                                    <input
-                                        className='bg-blue-600/90 text-white tracking-wider pl-4 pr-10 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300'
-                                        id='client'
-                                        name='client'
-                                        type='text'
-                                        value='2019/02/28'
-                                        disabled
-                                    />
-
-                                    <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
-                                        <svg
-                                            className='h-5 w-5'
-                                            xmlns='http://www.w3.org/2000/svg'
-                                            fill='none'
-                                            viewBox='0 0 24 24'
-                                            stroke='currentColor'
-                                        >
-                                            <path
-                                                stroke-linecap='round'
-                                                stroke-linejoin='round'
-                                                stroke-width='2'
-                                                d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-                                            ></path>
-                                        </svg>
-                                    </span>
-                                </div>
-                            </div>
-
                             <div className='flex flex-col md:w-40  text-gray-600 text-sm space-y-2 font-semibold'>
-                                <label htmlFor='client'>Đến ngày</label>
-                                <div className='inline-flex relative'>
-                                    <input
-                                        className='bg-indigo-800/80 text-white tracking-wider pl-4 pr-10 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300'
-                                        id='client'
-                                        name='client'
-                                        type='text'
-                                        value='2019/12/09'
-                                        disabled
-                                    />
-
-                                    <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
-                                        <svg
-                                            className='h-5 w-5'
-                                            xmlns='http://www.w3.org/2000/svg'
-                                            fill='none'
-                                            viewBox='0 0 24 24'
-                                            stroke='currentColor'
-                                        >
-                                            <path
-                                                stroke-linecap='round'
-                                                stroke-linejoin='round'
-                                                stroke-width='2'
-                                                d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'
-                                            ></path>
-                                        </svg>
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className='flex flex-col md:w-40  text-gray-600 text-sm space-y-2 font-semibold'>
-                                <label htmlFor='client'>Trạng thái</label>
+                                <label htmlFor='doctor'>Trạng thái</label>
                                 <div className='inline-flex relative'>
                                     <select
                                         className='bg-rose-400 text-white  px-4 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
-                                        id='client'
-                                        name='client'
+                                        id='doctor'
+                                        name='doctor'
+                                        onChange={(e) => setDoctorStatus(e.target.value)}
                                     >
-                                        <option value=''>Tất cả</option>
-                                        <option value='Active'>Đã duyệt</option>
-                                        <option value='Inactive'>Chờ duyệt</option>
+                                        <option value='all'>Tất cả</option>
+                                        <option value='active'>Đã duyệt</option>
+                                        <option value='inactive'>Chờ duyệt</option>
                                     </select>
                                     <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
                                         <svg
@@ -219,8 +123,9 @@ const AdminDoctorPage = () => {
                                         className='bg-blue-600/70  text-white  px-4 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
                                         id='specialty'
                                         name='specialty'
+                                        onChange={(e) => setSpecialtyId(e.target.value)}
                                     >
-                                        <option value=''>Tất cả</option>
+                                        <option value='all'>Tất cả</option>
                                         {specialties?.map((specialty, index) => (
                                             <option key={index} value={specialty.id}>{specialty?.nameVi}</option>
                                         ))}
@@ -262,7 +167,7 @@ const AdminDoctorPage = () => {
                     </div>
 
                     <div className='bg-white mt-5 rounded-xl text-sm  text-gray-500 divide-y divide-indigo-50 overflow-x-auto text-center shadow cursor-pointer'>
-                        {currentDoctors?.map((doctor, index) => (
+                        {currentDoctors && currentDoctors?.map((doctor, index) => (
                             <Link
                                 href={`/admin/doctor/${doctor.id}`}
                                 key={index}
@@ -303,7 +208,7 @@ const AdminDoctorPage = () => {
                             </div>
                         </li>
                         <li>
-                            {currentPage < Math.ceil(listDoctors.length / doctorsPerPage) && (
+                            {currentPage < Math.ceil(totalDoctors / doctorsPerPage) && (
                                 <button 
                                     className="py-2 px-4 bg-gray-200 text-gray-600 rounded-md hover:bg-indigo-500 hover:text-white transition duration-300"
                                     onClick={() => paginate(currentPage + 1)}

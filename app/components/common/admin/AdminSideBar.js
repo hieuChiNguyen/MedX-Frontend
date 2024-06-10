@@ -22,11 +22,17 @@ const AdminSideBar = () => {
         setSelectedLink(currentPath)
     }, [])
 
-    const handleLogOut = async () => {
-        let res = await authApi.logout()
-        dispatch(logout())
-        localStorage.removeItem('accessToken')
-        toasts.successTopCenter('Đăng xuất thành công !')
+    const handleLogOut = async (e) => {
+        e.preventDefault()
+        try {
+            let res = await authApi.logout()
+            dispatch(logout())
+            localStorage.removeItem('accessToken')
+            toasts.successTopCenter('Đăng xuất thành công.')
+        } catch (error) {
+            console.error('Logout failed:', error)
+            toasts.errorTopCenter('Đăng xuất thất bại.')
+        }
     }
 
     return (
@@ -57,6 +63,16 @@ const AdminSideBar = () => {
                 </Link>
                 <Link
                     className={`flex flex-row gap-4 text-center w-full items-center space-x-2 py-1 group hover:border-r-2 hover:border-r-indigo-700 hover:font-semibold ${
+                        selectedLink === '/admin/specialty' ? 'font-semibold border-r-indigo-700' : ''
+                    }`}
+                    href='/admin/specialty'
+                    onClick={() => handleLinkClick('/admin/specialty')}
+                >
+                    <i className='fa-light fa-notes-medical font-medium text-lg w-1/5'></i>
+                    <span>Chuyên khoa</span>
+                </Link>
+                <Link
+                    className={`flex flex-row gap-4 text-center w-full items-center space-x-2 py-1 group hover:border-r-2 hover:border-r-indigo-700 hover:font-semibold ${
                         selectedLink === '/admin/patient' ? 'font-semibold border-r-indigo-700' : ''
                     }`}
                     href='/admin/patient'
@@ -75,13 +91,14 @@ const AdminSideBar = () => {
                     <i className='fa-sharp fa-light fa-calendar-check font-light text-lg w-1/5'></i>
                     <span>Lịch khám</span>
                 </Link>
-                <div
+                <Link
+                    href={'/login'}
                     className={`flex flex-row gap-4 text-center w-full items-center space-x-2 py-1 group hover:border-r-2 hover:border-r-indigo-700 hover:font-semibold cursor-pointer`}
-                    onClick={handleLogOut}
+                    onClick={(e) => handleLogOut(e)}
                 >
                     <i className='fa-light fa-right-from-bracket font-light text-lg w-1/5'></i>
                     <span>Đăng xuất</span>
-                </div>
+                </Link>
             </div>
             <ToastContainer />
         </aside>

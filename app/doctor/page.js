@@ -49,7 +49,7 @@ const OnlyForDoctorPage = () => {
                             </button>
                         </Link>
 
-                        <Link href='/doctor/cooperate' >
+                        <Link href='/doctor/appointment' >
                             <button
                                 className='p-3 w-60 rounded-2xl bg-blue-500 relative bottom-40 left-32 text-white font-semibold'
                             >

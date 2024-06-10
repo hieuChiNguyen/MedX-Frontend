@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from "../../components/common/Header";
 import TimeSlotEnum from "../../../utils/enum/time_slot.enum"
 import { useSelector } from 'react-redux';
@@ -19,7 +19,7 @@ const DoctorSchedulePage = () => {
     );
     const auth = useSelector((state) => state.auth); 
 
-    if (auth?.role === RoleEnum.DOCTOR && auth?.doctorStatus === 'Inactive') {
+    if (auth?.role === RoleEnum.DOCTOR && (auth?.doctorStatus === 'Inactive' || auth?.doctorStatus === '')) {
         router.push('/doctor');
         return null;
     }
@@ -29,6 +29,22 @@ const DoctorSchedulePage = () => {
         timeSlots: [],
         doctorId: auth.doctorId
     })
+
+    const [doctorSchedules, setDoctorSchedules] = useState([]);
+
+    const fetchDoctorSchedules = async () => {
+        try {
+            const response = await scheduleApi.getSchedulesOfDoctor(auth.doctorId);
+            // Xử lý dữ liệu trả về từ API và cập nhật state với danh sách lịch khám của bác sĩ
+            setDoctorSchedules(response.data);
+        } catch (error) {
+            console.error('Failed to fetch doctor schedules:', error);
+        }
+    };
+
+    useEffect(() => {
+        fetchDoctorSchedules();
+    }, []);
 
     const handleSlotClick = (index) => {
         const updatedSlots = [...slotStatus];
@@ -43,29 +59,27 @@ const DoctorSchedulePage = () => {
         const weekdays = [];
         const currentDate = new Date();
         let day = currentDate.getDay(); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
-    
-        // Nếu ngày hiện tại không phải thứ 2 (1), chuyển đến Thứ 2 (1)
-        // if (day !== 1) {
-        //     currentDate.setDate(currentDate.getDate() - day + (day === 0 ? -6 : 1));
-        // }
+        
+        // Nếu ngày hiện tại là Thứ bảy (6), Chủ nhật (0), chuyển đến thứ 2 gần nhất sau
+        if (day === 0) {
+            currentDate.setDate(currentDate.getDate() + 1)
+        }
 
-        if (day === 6 || day === 0) {
-            currentDate.setDate(currentDate.getDate() + (1 + 7 - day)); // Điều chỉnh ngày cho thứ 2 của tuần tiếp theo
-        } else {
-            currentDate.setDate(currentDate.getDate() - day + (day === 0 ? -6 : 1));
+        if (day === 6) {
+            currentDate.setDate(currentDate.getDate() + 2)
         }
         
         // Lặp qua các ngày từ Thứ 2 đến Thứ 6
         for (let i = 0; i < 5; i++) {
             // Tính toán ngày của mỗi ngày trong tuần
-            const date = new Date(currentDate);
-            date.setDate(currentDate.getDate() + i); // Di chuyển đến ngày cụ thể trong tuần
-            weekdays.push(date); // Thêm ngày vào mảng
+            const date = new Date(currentDate)
+            date.setDate(currentDate.getDate() + i)
+            weekdays.push(date)
         }
         
         return weekdays;
     };
-
+    
     const weekdays = getWeekdays();
 
     const formatDate = (date) => {
@@ -97,37 +111,48 @@ const DoctorSchedulePage = () => {
             doctorId: auth.doctorId
         };
 
-        // Giả sử bạn có hàm gọi API ở đây
-        console.log("Data to be sent to API:", input);
+        const isValid = Object.values(input).every((value) => value !== '')
 
-        
-        try {
-            let response = await scheduleApi.createNewSchedules(input)
-
-            // Fail to create new patient
-            if (response.data && response.message !== 'OK') {
-                setErrorMessage(data.message)
+        if (isValid) {
+            try {
+                let response = await scheduleApi.createNewSchedules(input)
+    
+                // Fail to create new patient
+                if (response.data && response.message !== 'OK') {
+                    setErrorMessage(data.message)
+                }
+    
+                // Success to create new patient
+                if (response.data && response.message === 'OK') {
+                    toasts.successTopRight('Bác sĩ đăng ký lịch khám thành công.')
+                    setTimeout(function () {
+                        router.push('/doctor')
+                    }, 1500)
+                }
+            } catch (error) {
+                console.log(error)
             }
-
-            // Success to create new patient
-            if (response.data && response.message === 'OK') {
-                toasts.successTopRight('Bác sĩ đăng ký lịch khám thành công.')
-                setTimeout(function () {
-                    router.push('/doctor')
-                }, 1500)
-            }
-        } catch (error) {
-            console.log(error)
         }
 
         // Reset các khung giờ sau khi đăng ký
         // setSlotStatus(timeSlots.map(slot => ({ timeSlot: slot, isSelected: false })))
     }
 
+    const groupedSchedules = {};
+    if (doctorSchedules && doctorSchedules.length > 0) {
+        doctorSchedules.forEach(schedule => {
+            const date = formatDate(new Date(schedule.date));
+            if (!groupedSchedules[date]) {
+                groupedSchedules[date] = [];
+            }
+            groupedSchedules[date].push(schedule.timeSlot);
+        });
+    }
+
     return (
         <main>
             <Header />
-            <div className="flex flex-col w-[80%] mx-auto items-center justify-center">
+            <div className="flex flex-col w-[80%] mx-auto items-center justify-center mb-10">
                 <p className="p-1 mx-auto text-blue-600 font-semibold text-2xl mt-5">Đăng kí lịch khám trong tuần</p>
                 {/* <p className="text-16 text-red-400 font-medium">*Chú ý: Đăng lý lịch với từng ngày trong tuần</p> */}
                 <div className="relative inline-block my-3">
@@ -175,6 +200,28 @@ const DoctorSchedulePage = () => {
                 >
                     Đăng ký lịch
                 </button>
+                
+                <hr className='border-2 w-full my-2 border-blue-400'></hr>
+
+                {/* Phần hiển thị các lịch bác sĩ vừa đăng ký */}
+                <p className="p-1 mx-auto text-blue-600 font-semibold text-2xl mt-5">Các lịch đã đăng ký</p>
+                <div className="grid grid-cols-3 gap-4">
+                    {Object.entries(groupedSchedules).map(([date, timeSlots], index) => (
+                        <div key={index} className="p-4 bg-white rounded-lg shadow-md">
+                            <h3 className="text-lg font-bold mb-2">{date}</h3>
+                            <div className="flex flex-wrap">
+                                {timeSlots.map((timeSlot, idx) => (
+                                    <span 
+                                        key={idx} 
+                                        className="bg-gray-200 px-2 py-1 rounded mr-2 mb-2 cursor-pointer hover:bg-blue-300"
+                                    >
+                                        {timeSlot}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
             </div>
             <ToastContainer />
         </main>

@@ -7,6 +7,7 @@ import { login } from '../../redux/reducers/authSlice'
 import toasts from '../components/common/Toast'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { RoleEnum } from '../../utils/enum/role.enum'
 
 const LogInPage = () => {
     const router = useRouter()
@@ -64,13 +65,17 @@ const LogInPage = () => {
 
                 dispatch(login(user))
 
-                if (user.role === 'Admin') {
+                if (user.role === RoleEnum.ADMIN) {
                     setTimeout(function () {
                         router.push('/admin/dashboard')
                     }, 2000)
-                } else if(user.role === 'Doctor') {
+                } else if(user.role === RoleEnum.DOCTOR) {
                     setTimeout(function () {
                         router.push('/doctor')
+                    }, 2000)
+                } else if(user.role === RoleEnum.RECEPTIONIST) {
+                    setTimeout(function () {
+                        router.push('/admin/dashboard')
                     }, 2000)
                 } else {
                     setTimeout(function() {

@@ -18,15 +18,18 @@ const AdminPatientPage = () => {
     const [selectedProvince, setSelectedProvince] = useState('')
     const [selectedDistrict, setSelectedDistrict] = useState('')
     const [selectedWard, setSelectedWard] = useState('')
+    const [selectedGender, setSelectedGender] = useState('all')
+    const [currentPage, setCurrentPage] = useState(1);
+    const patientsPerPage = 5;
 
-    if (auth.role !== RoleEnum.ADMIN) {
+    if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
         router.push('/login');
         return null;
     }
 
     const getAllPatients = async () => {
         try {
-            let response = await patientApi.getAllPatients()
+            let response = await patientApi.getAllPatients(selectedGender)
             setListPatients(response.data)
         } catch (error) {
             console.log(error)
@@ -63,7 +66,7 @@ const AdminPatientPage = () => {
     useEffect(() => {
         getAllPatients()
         getListProvinces()
-    }, [])
+    }, [selectedGender])
 
     useEffect(() => {
         if (selectedProvince) {
@@ -83,6 +86,19 @@ const AdminPatientPage = () => {
         return date.toLocaleDateString('vi-VN')
     }
 
+    const indexOfLastPatient = currentPage * patientsPerPage;
+    const indexOfFirstPatient = indexOfLastPatient - patientsPerPage;
+    const currentPatients = listPatients && listPatients.length > 0 ? listPatients.slice(indexOfFirstPatient, indexOfLastPatient): []
+    const totalPatients = listPatients ? listPatients.length : 0;
+
+    const pageNumbers = [];
+    for (let i = 1; i <= Math.ceil(totalPatients / patientsPerPage); i++) {
+        pageNumbers.push(i);
+    }
+    
+    // Chuyển trang
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
     return (
         <main className='w-screen flex 2xl:mx-auto 2xl:border-x-2 2xl:border-indigo-50 '>
             <AdminSideBar />
@@ -93,32 +109,6 @@ const AdminPatientPage = () => {
                     </div>
 
                     <div className='flex space-x-5 md:space-x-10 text-gray-500 items-center content-center text-base '>
-                        <a className='flex items-center space-x-3 px-4 py-2 rounded-md  hover:bg-indigo-100' href='#'>
-                            <span>
-                                <svg
-                                    className='h-5 w-5'
-                                    xmlns='http://www.w3.org/2000/svg'
-                                    fill='none'
-                                    viewBox='0 0 24 24'
-                                    stroke='currentColor'
-                                >
-                                    <path
-                                        strokeLinecap='round'
-                                        strokeLinejoin='round'
-                                        strokeWidth='2'
-                                        d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
-                                    ></path>
-
-                                    <path
-                                        strokeLinecap='round'
-                                        strokeLinejoin='round'
-                                        strokeWidth='2'
-                                        d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-                                    ></path>
-                                </svg>
-                            </span>
-                            <span className='hidden sm:block'>Cài đặt</span>
-                        </a>
                         <Link
                             className='px-4 py-2 bg-indigo-100 rounded-md flex items-center space-x-2 text-indigo-500 hover:bg-indigo-200'
                             href='/admin/patient/create'
@@ -151,10 +141,12 @@ const AdminPatientPage = () => {
                                         className='bg-blue-600/90 text-white  px-4 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300'
                                         id='gender'
                                         name='gender'
+                                        onChange={(e) => setSelectedGender(e.target.value)}
                                     >
-                                        <option value=''>Tất cả</option>
-                                        <option value='Male'>Nam</option>
-                                        <option value='Female'>Nữ</option>
+                                        <option value='all'>Tất cả</option>
+                                        <option value='male'>Nam</option>
+                                        <option value='female'>Nữ</option>
+                                        <option value='others'>Khác</option>
                                     </select>
                                     <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
                                         <svg
@@ -300,7 +292,7 @@ const AdminPatientPage = () => {
                     </div>
 
                     <div className='bg-white mt-5 rounded-xl text-sm  text-gray-500 divide-y divide-indigo-50 overflow-x-auto text-center shadow cursor-pointer'>
-                        {listPatients?.map((patient, index) => (
+                        {currentPatients?.map((patient, index) => (
                             <Link 
                                 href={`/admin/patient/${patient?.id}`}
                                 key={index}
@@ -317,6 +309,34 @@ const AdminPatientPage = () => {
                             </Link>
                         ))}
                     </div>
+
+                    <ul className="flex items-center mx-auto justify-center absolute -bottom-52 left-40 right-0">
+                        <li>
+                            {currentPage > 1 && (
+                                <button 
+                                    className="py-2 px-4 bg-gray-200 text-gray-600 rounded-md hover:bg-indigo-500 hover:text-white transition duration-300"
+                                    onClick={() => paginate(currentPage - 1)}
+                                >
+                                    {'<'}
+                                </button>
+                            )}
+                        </li>
+                        <li>
+                            <div className="py-2 px-4 bg-gray-200 text-gray-600 rounded-md">
+                                {currentPage}
+                            </div>
+                        </li>
+                        <li>
+                            {currentPage < Math.ceil(totalPatients / patientsPerPage) && (
+                                <button 
+                                    className="py-2 px-4 bg-gray-200 text-gray-600 rounded-md hover:bg-indigo-500 hover:text-white transition duration-300"
+                                    onClick={() => paginate(currentPage + 1)}
+                                >
+                                    {'>'}
+                                </button>
+                            )}
+                        </li>
+                    </ul>
                 </div>
             </section>
         </main>

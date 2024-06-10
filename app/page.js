@@ -7,12 +7,21 @@ import assets from '../assets'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import doctorApi from './api/doctor/DoctorApi'
+import shareApi from './api/share/ShareApi'
 import DoctorsList from './components/doctor/DoctorList'
 import SpecialtyList from './components/doctor/SpecialtyList'
+import toasts from './components/common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const HomePage = () => {
     const [listDoctors, setListDoctors] = useState([])
     const [listSpecialties, setListSpecialties] = useState([])
+    const [showModal, setShowModal] = useState(false)
+    const [inputCode, setInputCode] = useState({
+        code: ''
+    })
+    const [sharedLink, setSharedLink] = useState('')
 
     const getListDoctors = async () => {
         try {
@@ -36,6 +45,22 @@ const HomePage = () => {
         getListDoctors()
         getListSpecialties()
     }, [])
+
+    const verifyCode = async () => {
+        try {
+            let response = await shareApi.verifyCode(inputCode)
+            console.log('check check::', response);
+            if (response.data.check === true) {
+                setSharedLink(response.data.url)
+            }
+            if (response.data.check === false) {
+                toasts.errorTopCenter(response.message)
+            }
+           
+        } catch (error) {
+            console.log(error)
+        }
+    }
 
     return (
         <main>
@@ -106,7 +131,7 @@ const HomePage = () => {
                         <p className='uppercase font-semibold text-blue-800 text-2xl'>Dịch vụ của chúng tôi</p>
                     </div>
 
-                    <p className='text-blue-500 font-semibold text-xl'>Bác sĩ của MedX</p>
+                    <p className='text-blue-500 font-semibold text-xl'>Bác sĩ nổi bật của MedX</p>
 
                     <Link href='/doctors' className='text-center justify-center mx-auto'>
                         <div className='flex flex-row gap-1'>
@@ -133,12 +158,60 @@ const HomePage = () => {
                         </div>
                     </Link>
 
-                    <p className='text-blue-500 font-semibold text-xl'>Chuyên khoa của MedX</p>
+                    <p className='text-blue-500 font-semibold text-xl'>Chuyên khoa nổi bật của MedX</p>
                     
                     <SpecialtyList listSpecialties={listSpecialties}/>
                 </section>
                 <Footer />
             </section>
+            {/* Fixed Button */}
+            <button 
+                className='fixed bottom-5 right-5 bg-blue-500 text-white p-3 rounded-full shadow-lg'
+                onClick={() => setShowModal(true)}
+            >
+                Nhập mã code
+            </button>
+
+            {/* Modal */}
+            {showModal && (
+                <div className='fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50'>
+                    <div className='bg-white p-5 rounded-lg shadow-lg w-full max-w-md'>
+                        <h2 className='text-xl font-semibold mb-4'>Nhập mã code</h2>
+                        <input
+                            type='text'
+                            placeholder='Nhập mã xác nhận'
+                            value={inputCode.code}
+                            onChange={(e) => setInputCode({ code: e.target.value })}
+                            className='border p-2 w-full mb-4'
+                        />
+                        {sharedLink && (
+                            <a 
+                                href={sharedLink}
+                                className='text-blue-500 underline mb-4 block'
+                            >
+                                Nhấn vào đây để tải về
+                            </a>
+                        )}
+                        <button 
+                            className='p-2 bg-blue-500 text-white rounded-lg w-full hover:bg-blue-600 cursor-pointer'
+                            onClick={verifyCode}
+                        >
+                            Xác nhận
+                        </button>
+                        <button 
+                            className='mt-4 p-2 bg-red-500 rounded-lg w-full hover:bg-red-600 cursor-pointer'
+                            onClick={() => {
+                                setShowModal(false)
+                                setSharedLink('')
+                                setInputCode('')
+                            }}
+                        >
+                            Đóng
+                        </button>
+                    </div>
+                </div>
+            )}
+            <ToastContainer />
         </main>
     )
 }

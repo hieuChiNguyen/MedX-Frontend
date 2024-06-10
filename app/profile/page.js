@@ -127,13 +127,13 @@ function ProfilePage() {
                                                     <div className='text-xl font-bold block uppercase tracking-wide text-gray-600'>
                                                         0
                                                     </div>
-                                                    <div className='text-sm text-gray-400'>Appointments</div>
+                                                    <div className='text-sm text-gray-400 w-20'>Lịch khám</div>
                                                 </div>
                                                 <div className='p-3 text-center'>
                                                     <div className='text-xl font-bold block uppercase tracking-wide text-gray-600'>
                                                         xx
                                                     </div>
-                                                    <div className='text-sm text-gray-400'>Comments</div>
+                                                    <div className='text-sm text-gray-400 w-20'>Đánh giá</div>
                                                 </div>
                                             </div>
                                         </div>

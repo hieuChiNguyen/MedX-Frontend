@@ -7,8 +7,9 @@ const doctorApi = {
         return response
     },
 
-    getAllDoctors: async () => {
-        const response = await axiosClient.get('/api/v1/doctor')
+    // Admin
+    getAllDoctors: async (status, specialtyId) => {
+        const response = await axiosJwt.get(`/api/v1/doctor?status=${status}&specialty=${specialtyId}`)
         return response
     },
 
@@ -32,21 +33,25 @@ const doctorApi = {
         return response
     },
 
+    // Any roles
     getAllSpecialties: async () => {
         const response = await axiosClient.get('/api/v1/specialties')
         return response
     },
 
+    // Any roles
     paginateAllSpecialties: async (currentPage, itemsPerPage) => {
         const response = await axiosClient.get(`/api/v1/specialties/${currentPage}/${itemsPerPage}`)
         return response
     },
 
+    // Any roles
     getTopSpecialties: async (c) => {
         const response = await axiosClient.get(`/api/v1/specialties/top`)
         return response
     },
 
+    // Any roles
     getListDoctorsBySpecialty: async (specialty) => {
         const response = await axiosClient.get(`/api/v1/doctor/specialty/${specialty}`)
         return response
@@ -76,6 +81,17 @@ const doctorApi = {
         const response = await axiosClient.get(`/api/v1/markdown/doctor/${doctorId}`)
         return response
     },
-}
+
+    getDoctorAppointment: async (doctorId) => {
+        const response = await axiosJwt.get(`/api/v1/appointment_doctor/${doctorId}`)
+        return response
+    },
+
+    updateResultExam: async (data) => {
+        console.log('haha::');
+        const response = await axiosJwt.post('/api/v1/history/create', data)
+        console.log('check res::');
+        return response
+    }}
 
 export default doctorApi

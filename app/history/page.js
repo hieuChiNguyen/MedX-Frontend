@@ -51,13 +51,10 @@ const AppointmentsHistoryPatientPage = () => {
                                 <h3 className="text-lg font-semibold">{appointment?.specialtyAppointment?.nameVi}</h3>
                                 <p className='text-sm'>Ngày hẹn: {format(appointment?.appointmentDate, 'dd/MM/yyyy')}</p>
                                 <p className='text-sm'>Khung giờ đặt: {appointment?.expectedTime}</p>
-                                <p className='text-sm'>Lý do khám: {appointment?.examReason}</p>
                                 <p className='text-sm'>Trạng thái: {renderStatus(appointment?.status)}</p>
                             </div>
                             <div className="flex-grow bg-white py-2">
-                                <p className='p-2'><strong>Bác sĩ:</strong> {appointment.doctorName}</p>
-                                <p className='p-2'><strong>Ghi chú:</strong> {appointment.notes}</p>
-                                <Link href={'#'} className='p-2 font-semibold hover:text-blue-500 hover:underline'> Xem chi tiết </Link>
+                                <Link href={`/history/${appointment.id}`} className='p-2 font-semibold hover:text-blue-500 hover:underline'> Xem chi tiết </Link>
                             </div>
                         </div>
                     ))}

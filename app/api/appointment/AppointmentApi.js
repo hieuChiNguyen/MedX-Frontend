@@ -6,13 +6,15 @@ const appointmentApi = {
         return response
     },
 
-    getAllAppointments: async () => {
-        const response = await axiosJwt.get('/api/v1/appointment')
+    // Admin, Receiptionist
+    getAllAppointments: async (status) => {
+        const response = await axiosJwt.get(`/api/v1/appointment?status=${status}`)
         return response
     },
 
     getAppointmentById: async (appointmentId) => {
         const response = await axiosJwt.get(`api/v1/appointment/${appointmentId}`)
+        console.log('check response::', response);
         return response
     },
 
@@ -25,7 +27,6 @@ const appointmentApi = {
         const response = await axiosJwt.get(`/api/v1/appointments/history/${patientId}`)
         return response
     },
-
 }
 
 export default appointmentApi

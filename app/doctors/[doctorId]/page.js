@@ -35,10 +35,10 @@ const DoctorDetailPage = ({ params }) => {
         try {
           const response = await doctorApi.getDoctorDetailContent(doctorId)
           setDoctorContent(response.data)
-          console.log('check response.data::', response.data);
-          console.log('check content::', doctorContent);
+          console.log('check response.data::', response.data)
+          console.log('check content::', doctorContent)
         } catch (error) {
-          console.error('Error fetching doctor detail content:', error);
+          console.error('Error fetching doctor detail content:', error)
         }
       };
   
@@ -50,6 +50,40 @@ const DoctorDetailPage = ({ params }) => {
   
     const bookAppointment = () => {
         router.push(`/patient-info`)
+    }
+
+    const getWeekdays = () => {
+        const weekdays = []
+        const currentDate = new Date()
+        let day = currentDate.getDay() // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
+        
+        // Nếu ngày hiện tại là Thứ bảy (6), Chủ nhật (0), chuyển đến thứ 2 gần nhất sau
+        if (day === 0) {
+            currentDate.setDate(currentDate.getDate() + 1)
+        }
+
+        if (day === 6) {
+            currentDate.setDate(currentDate.getDate() + 2)
+        }
+        
+        // Lặp qua các ngày từ Thứ 2 đến Thứ 6
+        for (let i = 0; i < 5; i++) {
+            // Tính toán ngày của mỗi ngày trong tuần
+            const date = new Date(currentDate)
+            date.setDate(currentDate.getDate() + i)
+            weekdays.push(date)
+        }
+        
+        return weekdays
+    };
+    
+    const weekdays = getWeekdays()
+
+    const formatDate = (date) => {
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
     }
 
     return (
@@ -78,6 +112,26 @@ const DoctorDetailPage = ({ params }) => {
                                 <div className='flex flex-row gap-2 items-center'>
                                     <i className='fa-light fa-calendar-days text-lg'></i>
                                     <p className='uppercase font-semibold'>Lịch khám</p>
+                                </div>
+
+                                <div className="relative inline-block my-3">
+                                    <select 
+                                        className="block appearance-none w-full rounded-lg bg-white border border-gray-300 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-blue-600"
+                                        value={schedule.date}
+                                        onChange={(e) => setSchedule({ ...schedule, date: e.target.value })}   
+                                    >
+                                        <option value='' disabled hidden selected>
+                                            Chọn ngày trong tuần
+                                        </option>
+                                        {weekdays.map((weekday, index) => (
+                                        <option key={index} id='date' value={formatDate(weekday)}>
+                                            {weekday.toLocaleDateString('vi', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                                        </option>
+                                        ))}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5 7l5 5 5-5z" /></svg>
+                                    </div>
                                 </div>
 
                                 <div className='grid grid-cols-4 gap-4'>
