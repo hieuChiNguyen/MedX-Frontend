@@ -25,7 +25,7 @@ const HomePage = () => {
 
     const getListDoctors = async () => {
         try {
-            let response = await doctorApi.getAllActiveDoctors()
+            let response = await doctorApi.getRandomTopDoctors()
             setListDoctors(response.data)
         } catch (error) {
             console.log(error)
@@ -107,7 +107,7 @@ const HomePage = () => {
                             Sức khỏe của bạn là niềm vui của chúng tôi
                         </p>
                         <div>
-                            <p>Với sứ mệnh đem đến dịch vụ chăm sóc sức khỏe tại nhà tốt nhất cho khách hàng, </p>
+                            <p>Với sứ mệnh đem đến dịch vụ chăm sóc sức khỏe tốt nhất cho khách hàng, </p>
 
                             <p>MedX là nơi bạn có thể trao trọn niềm tin</p>
                         </div>

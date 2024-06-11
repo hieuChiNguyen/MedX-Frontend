@@ -1,7 +1,28 @@
 'use client'
 import Link from 'next/link'
+import { useState } from 'react';
+import FeedbackModal from './FeedbackModal'
+import { useSelector } from 'react-redux';
+import toasts from '../../components/common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const Footer = () => {
+    const auth = useSelector((state) => state.auth)
+    const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+
+    const openFeedbackModal = () => {
+        if (auth.id) {
+            setIsFeedbackModalOpen(true);
+        } else {
+            toasts.errorTopCenter('Đăng nhập để gửi phản hồi')
+        }
+    };
+
+    const closeFeedbackModal = () => {
+        setIsFeedbackModalOpen(false);
+    };
+
     return (
         <footer className='bg-blue-900 mt-10'>
             <div className='flex flex-row gap-36 justify-start px-10 py-5'>
@@ -49,7 +70,7 @@ const Footer = () => {
                 </div>
                 <div className='flex flex-col gap-4'>
                     <h3 className='text-lg font-semibold text-white'>Đóng góp ý kiến</h3>
-                    <div className='flex flex-row gap-4 py-2 px-6 bg-blue-email rounded-lg cursor-pointer'>
+                    <div className='flex flex-row gap-4 py-2 px-6 bg-blue-email rounded-lg cursor-pointer' onClick={openFeedbackModal}>
                         <p className='text-blue-950'>Gửi email góp ý</p>
                         <i className='fa-regular fa-paper-plane text-blue-950'></i>
                     </div>
@@ -80,6 +101,8 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
+            {isFeedbackModalOpen && <FeedbackModal onClose={closeFeedbackModal} auth={auth}/>}
+            <ToastContainer />
         </footer>
     )
 }

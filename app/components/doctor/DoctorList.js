@@ -2,6 +2,7 @@
 import React from 'react'
 import Image from 'next/image'
 import assets from '../../../assets'
+import Link from 'next/link'
 
 const DoctorsList = ({ listDoctors }) => {
     return (
@@ -13,6 +14,14 @@ const DoctorsList = ({ listDoctors }) => {
                         <p className='text-blue-950 font-semibold'>{doctor.position}: {doctor.doctorInformation.fullName}</p>
                         <p className='text-blue-950 font-semibold'>Chuyên khoa: {doctor.doctorSpecialty.nameVi}</p>
                     </div>
+
+                    <Link href={`/doctors/${doctor.id}`}>
+                        <div 
+                            className='text-white bg-blue-900 font-semibold cursor-pointer py-1 shadow-sm'
+                        >
+                            Xem chi tiết
+                        </div>
+                    </Link>
                 </div>
             ))}
         </div>

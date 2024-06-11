@@ -28,11 +28,11 @@ const AppointmentsHistoryPatientPage = () => {
     const renderStatus = (status) => {
         switch (status) {
             case 'Đã hủy':
-                return <span className="text-gray-500 font-semibold"> Đã hủy </span>
+                return <span className="text-red-500 font-semibold"> Đã hủy </span>
             case 'Đã xác nhận':
-                return <span className="text-green-500 font-semibold"> Đã xác nhận </span>
+                return <span className="text-orange-500 font-semibold"> Đã xác nhận </span>
             case 'Đã khám xong':
-                return <span className="text-red-500 font-semibold"> Đã khám xong </span>
+                return <span className="text-green-500 font-semibold"> Đã khám xong </span>
             default:
                 return <span className="text-blue-500 font-semibold"> Lịch hẹn mới </span>
         }
@@ -44,21 +44,30 @@ const AppointmentsHistoryPatientPage = () => {
             <Navbar />
             <section className="w-[80%] mx-auto p-5">
                 <h2 className="text-2xl font-semibold mb-5">Lịch khám của bạn</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {appointments.map((appointment, index) => (
-                        <div key={index} className="flex flex-col rounded-lg overflow-hidden shadow-lg my-5">
-                            <div className="bg-blue-100 p-3">
-                                <h3 className="text-lg font-semibold">{appointment?.specialtyAppointment?.nameVi}</h3>
-                                <p className='text-sm'>Ngày hẹn: {format(appointment?.appointmentDate, 'dd/MM/yyyy')}</p>
-                                <p className='text-sm'>Khung giờ đặt: {appointment?.expectedTime}</p>
-                                <p className='text-sm'>Trạng thái: {renderStatus(appointment?.status)}</p>
-                            </div>
-                            <div className="flex-grow bg-white py-2">
-                                <Link href={`/history/${appointment.id}`} className='p-2 font-semibold hover:text-blue-500 hover:underline'> Xem chi tiết </Link>
-                            </div>
+                {
+                    appointments?.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {appointments.map((appointment, index) => (
+                                <div key={index} className="flex flex-col rounded-lg overflow-hidden shadow-lg my-5">
+                                    <div className="bg-blue-100 p-3">
+                                        <h3 className="text-lg font-semibold">{appointment?.specialtyAppointment?.nameVi}</h3>
+                                        <p className='text-sm'>Ngày hẹn: {format(appointment?.appointmentDate, 'dd/MM/yyyy')}</p>
+                                        <p className='text-sm'>Khung giờ đặt: {appointment?.expectedTime}</p>
+                                        <p className='text-sm'>Trạng thái: {renderStatus(appointment?.status)}</p>
+                                    </div>
+                                    <div className="flex-grow bg-white py-2">
+                                        <Link href={`/history/${appointment.id}`} className='p-2 font-semibold hover:text-blue-500 hover:underline'> Xem chi tiết </Link>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
+                    ) : (
+                        <div className='w-full text-center h-200'>
+                            <p className='text-gray-400 text-xl py-20'>Chưa có lịch khám nào</p>
+                        </div>
+                    )
+                }
+                
             </section>
             <Footer />
         </main>

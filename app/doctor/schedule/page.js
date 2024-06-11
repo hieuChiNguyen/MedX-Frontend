@@ -63,10 +63,12 @@ const DoctorSchedulePage = () => {
         // Nếu ngày hiện tại là Thứ bảy (6), Chủ nhật (0), chuyển đến thứ 2 gần nhất sau
         if (day === 0) {
             currentDate.setDate(currentDate.getDate() + 1)
-        }
-
-        if (day === 6) {
+        } else if (day === 6) {
             currentDate.setDate(currentDate.getDate() + 2)
+        } else {
+            // Nếu ngày hiện tại là từ Thứ 3 đến Thứ 6
+            const daysToMonday = (day === 1) ? 0 : (8 - day); // Tính số ngày còn lại đến Thứ 2 tuần sau
+            currentDate.setDate(currentDate.getDate() + daysToMonday);
         }
         
         // Lặp qua các ngày từ Thứ 2 đến Thứ 6
@@ -118,8 +120,8 @@ const DoctorSchedulePage = () => {
                 let response = await scheduleApi.createNewSchedules(input)
     
                 // Fail to create new patient
-                if (response.data && response.message !== 'OK') {
-                    setErrorMessage(data.message)
+                if (response.message !== 'OK') {
+                    setErrorMessage(response.message)
                 }
     
                 // Success to create new patient

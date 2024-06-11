@@ -87,11 +87,11 @@ function DetailDoctorAppointmentPage({params}) {
       console.log('check res::', response);
 
       // Success to create new user
-      if (response.data && response.errCode === 0) {
-          toasts.successTopRight('Cập nhật kết quả thành công.')
+      if (response.data && (response.errCode === 0 || response.errCode === 1) ) {
+          toasts.successTopRight('Cập nhật kết quả khám thành công.')
       }
 
-      if (response.errCode !== 0) {
+      if (response.errCode !== 0 && response.errCode !== 1) {
           toasts.errorTopRight(response.message)
       }
     } catch (error) {
@@ -140,12 +140,12 @@ function DetailDoctorAppointmentPage({params}) {
                     {urlObj.url} ({urlObj.extension})
                     </p>
                 ))} */}
-                {latestFileUrl && (
+                {/* {latestFileUrl && (
                   <div>
                     <p>Link tệp mới nhất:</p>
                     <a href={latestFileUrl}>{latestFileUrl}</a>
                   </div>
-                )}
+                )} */}
                 <button onClick={updateResultExam} className="border bg-blue-300 p-2 rounded-lg my-10">
                     Cập nhật kết quả khám
                 </button>

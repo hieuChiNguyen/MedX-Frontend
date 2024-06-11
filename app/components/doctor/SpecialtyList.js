@@ -2,6 +2,7 @@
 import React from 'react'
 import Image from 'next/image'
 import assets from '../../../assets'
+import Link from 'next/link'
 
 const SpecialtyList = ({ listSpecialties }) => {
     return (
@@ -12,12 +13,14 @@ const SpecialtyList = ({ listSpecialties }) => {
                     <div className='flex flex-col gap-2 bg-blue-email py-2'>
                         <p className='text-blue-950 font-semibold'>{specialty.nameVi}</p>
                     </div>
-        
-                    <div 
-                        className='text-white bg-blue-900 font-semibold cursor-pointer py-1 shadow-sm'
-                    >
-                        Xem chi tiết
-                    </div>
+
+                    <Link href={`/specialties/${specialty.id}`}>
+                        <div 
+                            className='text-white bg-blue-900 font-semibold cursor-pointer py-1 shadow-sm'
+                        >
+                            Xem chi tiết
+                        </div>
+                    </Link>
                 </div>
             ))}
         </div>

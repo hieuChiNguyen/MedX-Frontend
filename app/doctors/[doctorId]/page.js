@@ -8,18 +8,24 @@ import Image from 'next/image'
 import assets from '../../../assets'
 import doctorApi from '../../api/doctor/DoctorApi'
 import Link from 'next/link'
+import scheduleApi from '../../api/schedule/ScheduleApi'
 
 const DoctorDetailPage = ({ params }) => {
     const router = useRouter()
     const doctorId = params.doctorId
     const [doctor, setDoctor] = useState(null)
     const [doctorContent, setDoctorContent]= useState(null)
-    const timeSlots = [
-        '08:00 - 08:30', '08:30 - 09:00', '09:00 - 09:30', '09:30 - 10:00',
-        '10:00 - 10:30', '10:30 - 11:00', '11:00 - 11:30', '11:30 - 12:00',
-        '13:00 - 13:30', '13:30 - 14:00', '14:00 - 14:30', '14:30 - 15:00',
-        '15:00 - 15:30', '15:30 - 16:00', '16:00 - 16:30', '16:30 - 17:00',
+    const timeSlotsSample = [
+        '08:00 AM - 08:30 AM', '08:30 AM - 09:00 AM', '09:00 AM - 09:30 AM', '09:30 AM - 10:00 AM',
+        '10:00 AM - 10:30 AM', '10:30 AM - 11:00 AM', '11:00 AM - 11:30 AM', '11:30 AM - 12:00 AM',
+        '01:00 PM - 01:30 PM', '01:30 PM - 02:00 PM', '02:00 PM - 02:30 PM', '02:30 PM - 03:00 PM',
+        '03:00 PM - 03:30 PM', '03:30 PM - 04:00 PM', '04:00 PM - 04:30 PM', '04:30 PM - 05:00 PM',
     ]
+    const [timeSlots, setTimeSlots] = useState([])
+    const [remainSchedule, setRemainSchedule] = useState({
+        date: '',
+        doctorId: doctorId
+    }) 
   
     useEffect(() => {
       const fetchDoctorDetail = async () => {
@@ -49,32 +55,32 @@ const DoctorDetailPage = ({ params }) => {
     }, [doctorId]);
   
     const bookAppointment = () => {
-        router.push(`/patient-info`)
+        router.push(`/book-appointment`)
     }
 
     const getWeekdays = () => {
-        const weekdays = []
-        const currentDate = new Date()
-        let day = currentDate.getDay() // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
-        
-        // Nếu ngày hiện tại là Thứ bảy (6), Chủ nhật (0), chuyển đến thứ 2 gần nhất sau
-        if (day === 0) {
-            currentDate.setDate(currentDate.getDate() + 1)
+        const weekdays = [];
+        const currentDate = new Date();
+        let day = currentDate.getDay(); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
+    
+        // Tính toán ngày bắt đầu của tuần
+        let startOfWeek = new Date(currentDate);
+        startOfWeek.setDate(currentDate.getDate() - (day - 1)); // Chuyển đến ngày đầu tiên của tuần (thứ 2)
+    
+        // Nếu ngày hiện tại là Chủ nhật hoặc Thứ 7, chuyển đến thứ 2 gần nhất sau
+        if (day === 0 || day === 6) {
+            startOfWeek.setDate(startOfWeek.getDate() + (day === 0 ? 1 : 2));
         }
-
-        if (day === 6) {
-            currentDate.setDate(currentDate.getDate() + 2)
-        }
-        
+    
         // Lặp qua các ngày từ Thứ 2 đến Thứ 6
         for (let i = 0; i < 5; i++) {
             // Tính toán ngày của mỗi ngày trong tuần
-            const date = new Date(currentDate)
-            date.setDate(currentDate.getDate() + i)
-            weekdays.push(date)
+            const date = new Date(startOfWeek);
+            date.setDate(startOfWeek.getDate() + i);
+            weekdays.push(date);
         }
-        
-        return weekdays
+    
+        return weekdays;
     };
     
     const weekdays = getWeekdays()
@@ -85,6 +91,22 @@ const DoctorDetailPage = ({ params }) => {
         const day = String(date.getDate()).padStart(2, '0')
         return `${year}-${month}-${day}`
     }
+
+    useEffect(() => {
+        if (remainSchedule.date) {
+            const getRemainSchedule = async () => {
+                try {
+                    console.log('run here::')
+                    const response = await scheduleApi.getRemainScheduleByDate(remainSchedule)
+                    setTimeSlots(response.data)
+                    console.log('check t=re::', response.data);
+                } catch (error) {
+                     console.error('Error fetching remain schedules:', error)
+                }
+            }
+            getRemainSchedule()
+        }   
+    }, [remainSchedule.date])
 
     return (
         <main>
@@ -102,7 +124,6 @@ const DoctorDetailPage = ({ params }) => {
                                     <br />
                                     Bác sĩ từng công tác tại Bệnh viện Da liễu Trung ương
                                     <br />
-                                    Nguyên Tổng Thư ký Hiệp hội Da liễu Việt Nam
                                 </div>
                             </div>
                         </section>
@@ -111,14 +132,17 @@ const DoctorDetailPage = ({ params }) => {
                             <div className='flex flex-col gap-5 border-r-2 pr-20'>
                                 <div className='flex flex-row gap-2 items-center'>
                                     <i className='fa-light fa-calendar-days text-lg'></i>
-                                    <p className='uppercase font-semibold'>Lịch khám</p>
+                                    <p className='uppercase font-semibold'>Lịch khám còn trống</p>
                                 </div>
 
                                 <div className="relative inline-block my-3">
                                     <select 
                                         className="block appearance-none w-full rounded-lg bg-white border border-gray-300 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-blue-600"
-                                        value={schedule.date}
-                                        onChange={(e) => setSchedule({ ...schedule, date: e.target.value })}   
+                                        onChange={(e) =>  {      
+                                            setRemainSchedule({ ...remainSchedule, date: e.target.value })}}   
+                                        value={remainSchedule.date}
+                                        name='date'
+                                        id='date'
                                     >
                                         <option value='' disabled hidden selected>
                                             Chọn ngày trong tuần
@@ -135,15 +159,16 @@ const DoctorDetailPage = ({ params }) => {
                                 </div>
 
                                 <div className='grid grid-cols-4 gap-4'>
-                                    {timeSlots.map((timeSlot, index) => (
-                                        <div
-                                            key={index}
-                                            className='bg-gray-200 p-2 font-semibold text-sm cursor-pointer'
-                                            onClick={bookAppointment}
-                                        >
-                                            {timeSlot}
-                                        </div>
-                                    ))}
+                                    {
+                                        (timeSlots.length > 0 && remainSchedule.date !== '') && timeSlots.map((timeSlot, index) => (
+                                            <div
+                                                key={index}
+                                                className='bg-gray-200 p-2 font-semibold text-12'
+                                            >
+                                                {timeSlot.timeSlot}
+                                            </div>
+                                        ))
+                                    }
                                 </div>
 
                                 <div>

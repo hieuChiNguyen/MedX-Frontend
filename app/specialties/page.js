@@ -52,7 +52,7 @@ const ListSpecialtiesPage = () => {
                                 <p className='text-blue-950 font-semibold'>Chuyên khoa: {specialty.nameVi}</p>
                             </div>
 
-                            <Link href={`/spcialties/${specialty.id}`}>
+                            <Link href={`/specialties/${specialty.id}`}>
                                 <div 
                                     className='text-white bg-blue-900 font-semibold cursor-pointer py-1 shadow-sm rounded-b-lg'
                                 >

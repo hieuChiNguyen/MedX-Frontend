@@ -1,3 +1,4 @@
+import axiosClient from '../axiosClient'
 import axiosJwt from '../axiosJwt'
 
 const scheduleApi = {
@@ -9,7 +10,13 @@ const scheduleApi = {
     getSchedulesOfDoctor: async (doctorId) => {
         const response = await axiosJwt.get(`/api/v1/schedule/${doctorId}`)
         return response
-    }
+    },
+
+    getRemainScheduleByDate: async (data) => {
+        console.log('okee');
+        const response = await axiosClient.post('/api/v1/schedule/remain', data)
+        return response
+    },
 }
 
 export default scheduleApi

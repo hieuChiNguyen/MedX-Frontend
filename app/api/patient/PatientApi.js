@@ -49,7 +49,13 @@ const patientApi = {
     shareAppointmentResult: async (data) => {
         const response = await axiosJwt.post(`/api/v1/history/share`, data)
         return response
-    }
+    },
+
+    // Patient
+    sendFeedback: async (data) => {
+        const response = await axiosJwt.post(`/api/v1/email/feedback`, data)
+        return response
+    },
 }
 
 export default patientApi

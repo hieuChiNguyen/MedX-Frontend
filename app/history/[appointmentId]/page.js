@@ -90,11 +90,11 @@ const AppointmentDetailPage = ({params}) => {
     const renderStatus = (status) => {
         switch (status) {
             case 'Đã hủy':
-                return <span className="text-gray-500 font-semibold"> Đã hủy </span>
+                return <span className="text-red-500 font-semibold"> Đã hủy </span>
             case 'Đã xác nhận':
-                return <span className="text-green-500 font-semibold"> Đã xác nhận </span>
+                return <span className="text-orange-500 font-semibold"> Đã xác nhận </span>
             case 'Đã khám xong':
-                return <span className="text-red-500 font-semibold"> Đã khám xong </span>
+                return <span className="text-green-500 font-semibold"> Đã khám xong </span>
             default:
                 return <span className="text-blue-500 font-semibold"> Lịch hẹn mới </span>
         }
@@ -121,7 +121,7 @@ const AppointmentDetailPage = ({params}) => {
                         <div className='flex flex-col gap-4'>
                             <h3 className="text-xl font-semibold text-blue-500">Thông tin bác sĩ</h3>
                             <p><strong>Tên bác sĩ:</strong> {appointment.doctorName}</p>
-                            <p><strong>Ghi chú:</strong> {appointment.notes}</p>
+                            <p><strong>Chuyên khoa:</strong> {appointment.notes}</p>
                         </div>
                     </div>
                     <div className='my-10 flex flex-col gap-5'>

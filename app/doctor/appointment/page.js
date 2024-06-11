@@ -56,7 +56,7 @@ const DoctorAppointmentPage = () => {
                             </div>
                             <div className="flex-grow bg-white py-2">
                                 <p className='p-2'><strong>Mức độ ưu tiên:</strong> {appointment?.priority}</p>
-                                <Link href={`/doctor/appointment/${appointment?.appointmentId}}`} className='p-2 font-semibold text-blue-400 hover:text-blue-500 hover:underline'> Cập nhật kết quả khám </Link>
+                                <Link href={`/doctor/appointment/${appointment?.appointmentId}`} className='p-2 font-semibold text-blue-400 hover:text-blue-500 hover:underline'> Cập nhật kết quả khám </Link>
                             </div>
                         </div>
                     ))}

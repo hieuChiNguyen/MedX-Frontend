@@ -53,7 +53,7 @@ const doctorApi = {
 
     // Any roles
     getListDoctorsBySpecialty: async (specialty) => {
-        const response = await axiosClient.get(`/api/v1/doctor/specialty/${specialty}`)
+        const response = await axiosClient.get(`/api/v1/specialty/${specialty}`)
         return response
     },
 
@@ -88,10 +88,19 @@ const doctorApi = {
     },
 
     updateResultExam: async (data) => {
-        console.log('haha::');
         const response = await axiosJwt.post('/api/v1/history/create', data)
-        console.log('check res::');
         return response
-    }}
+    },
+
+    getRandomTopDoctors: async () => {
+        const response = await axiosClient.get('/api/v1/doctor/top')
+        return response
+    },
+
+    getDetailSpecialty: async (specialtyId) => {
+        const response = await axiosClient.get(`/api/v1/specialty/detail/${specialtyId}`)
+        return response
+    }
+}
 
 export default doctorApi

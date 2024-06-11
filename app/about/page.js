@@ -31,10 +31,10 @@ const AboutPage = () => {
                     <div>
                         <h2 className="text-3xl font-bold text-blue-800 mb-4">Sứ mệnh của chúng tôi</h2>
                         <p className="text-lg text-gray-700 mb-4">
-                            Với sứ mệnh mang lại dịch vụ chăm sóc sức khỏe tại nhà tốt nhất, MedX không ngừng nỗ lực để cải thiện trải nghiệm của người dùng. Chúng tôi luôn đặt khách hàng lên hàng đầu và cam kết mang đến dịch vụ uy tín, chất lượng.
+                            Với sứ mệnh mang lại dịch vụ chăm sóc sức khỏe tốt nhất, MedX không ngừng nỗ lực để cải thiện trải nghiệm của người dùng. Chúng tôi luôn đặt sức khỏe bệnh nhân lên hàng đầu và cam kết mang đến dịch vụ uy tín, chất lượng.
                         </p>
                         <p className="text-lg text-gray-700 mb-4">
-                            Đội ngũ bác sĩ của chúng tôi được tuyển chọn kỹ lưỡng, có chuyên môn cao và tận tâm với nghề. Chúng tôi tin rằng sức khỏe của bạn là niềm vui của chúng tôi.
+                            Đội ngũ <strong>bác sĩ</strong> của chúng tôi được tuyển chọn kỹ lưỡng, có chuyên môn cao và tận tâm với nghề. Chúng tôi tin rằng sức khỏe của bạn là niềm vui của chúng tôi.
                         </p>
                         <p className="text-lg text-gray-700">
                             Hãy cùng MedX khám phá những tiện ích vượt trội và trải nghiệm dịch vụ chăm sóc sức khỏe tốt nhất.
