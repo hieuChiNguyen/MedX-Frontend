@@ -49,7 +49,6 @@ const HomePage = () => {
     const verifyCode = async () => {
         try {
             let response = await shareApi.verifyCode(inputCode)
-            console.log('check check::', response);
             if (response.data.check === true) {
                 setSharedLink(response.data.url)
             }
@@ -166,7 +165,7 @@ const HomePage = () => {
             </section>
             {/* Fixed Button */}
             <button 
-                className='fixed bottom-5 right-5 bg-blue-500 text-white p-3 rounded-full shadow-lg'
+                className='fixed bottom-12 right-5 bg-blue-500 text-white p-3 rounded-full shadow-lg'
                 onClick={() => setShowModal(true)}
             >
                 Nhập mã code

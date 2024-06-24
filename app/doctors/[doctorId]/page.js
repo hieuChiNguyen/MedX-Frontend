@@ -1,6 +1,5 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Header from '../../components/common/Header'
 import Footer from '../../components/common/Footer'
 import Navbar from '../../components/common/Navbar'
@@ -9,18 +8,12 @@ import assets from '../../../assets'
 import doctorApi from '../../api/doctor/DoctorApi'
 import Link from 'next/link'
 import scheduleApi from '../../api/schedule/ScheduleApi'
+import { addDays, getDay  } from 'date-fns'
 
 const DoctorDetailPage = ({ params }) => {
-    const router = useRouter()
     const doctorId = params.doctorId
     const [doctor, setDoctor] = useState(null)
     const [doctorContent, setDoctorContent]= useState(null)
-    const timeSlotsSample = [
-        '08:00 AM - 08:30 AM', '08:30 AM - 09:00 AM', '09:00 AM - 09:30 AM', '09:30 AM - 10:00 AM',
-        '10:00 AM - 10:30 AM', '10:30 AM - 11:00 AM', '11:00 AM - 11:30 AM', '11:30 AM - 12:00 AM',
-        '01:00 PM - 01:30 PM', '01:30 PM - 02:00 PM', '02:00 PM - 02:30 PM', '02:30 PM - 03:00 PM',
-        '03:00 PM - 03:30 PM', '03:30 PM - 04:00 PM', '04:00 PM - 04:30 PM', '04:30 PM - 05:00 PM',
-    ]
     const [timeSlots, setTimeSlots] = useState([])
     const [remainSchedule, setRemainSchedule] = useState({
         date: '',
@@ -41,8 +34,6 @@ const DoctorDetailPage = ({ params }) => {
         try {
           const response = await doctorApi.getDoctorDetailContent(doctorId)
           setDoctorContent(response.data)
-          console.log('check response.data::', response.data)
-          console.log('check content::', doctorContent)
         } catch (error) {
           console.error('Error fetching doctor detail content:', error)
         }
@@ -54,36 +45,42 @@ const DoctorDetailPage = ({ params }) => {
       }
     }, [doctorId]);
   
-    const bookAppointment = () => {
-        router.push(`/book-appointment`)
-    }
-
     const getWeekdays = () => {
         const weekdays = [];
         const currentDate = new Date();
-        let day = currentDate.getDay(); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
-    
-        // Tính toán ngày bắt đầu của tuần
-        let startOfWeek = new Date(currentDate);
-        startOfWeek.setDate(currentDate.getDate() - (day - 1)); // Chuyển đến ngày đầu tiên của tuần (thứ 2)
-    
-        // Nếu ngày hiện tại là Chủ nhật hoặc Thứ 7, chuyển đến thứ 2 gần nhất sau
-        if (day === 0 || day === 6) {
-            startOfWeek.setDate(startOfWeek.getDate() + (day === 0 ? 1 : 2));
-        }
-    
-        // Lặp qua các ngày từ Thứ 2 đến Thứ 6
-        for (let i = 0; i < 5; i++) {
-            // Tính toán ngày của mỗi ngày trong tuần
-            const date = new Date(startOfWeek);
-            date.setDate(startOfWeek.getDate() + i);
-            weekdays.push(date);
+        let dayOfWeek = getDay(currentDate); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
+        let startOfWeek;
+
+        if (dayOfWeek === 6 ) {
+            startOfWeek = addDays(currentDate, 2); // Next Monday
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
+        } else if (dayOfWeek === 0) {
+            startOfWeek = addDays(currentDate, 1); // Next Monday
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
+        } else {
+            const daysUntilFriday = 5 - dayOfWeek; // Calculate days until next Friday
+            startOfWeek = currentDate;
+            // endOfWeek = addDays(currentDate, daysUntilFriday);
+            for (let i = 0; i <= daysUntilFriday; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
         }
     
         return weekdays;
     };
     
     const weekdays = getWeekdays()
+    // console.log('check weekdays::', weekdays);
 
     const formatDate = (date) => {
         const year = date.getFullYear()
@@ -96,10 +93,10 @@ const DoctorDetailPage = ({ params }) => {
         if (remainSchedule.date) {
             const getRemainSchedule = async () => {
                 try {
-                    console.log('run here::')
+                    // console.log('run here::')
                     const response = await scheduleApi.getRemainScheduleByDate(remainSchedule)
                     setTimeSlots(response.data)
-                    console.log('check t=re::', response.data);
+                    // console.log('check here::', response.data);
                 } catch (error) {
                      console.error('Error fetching remain schedules:', error)
                 }
@@ -116,13 +113,19 @@ const DoctorDetailPage = ({ params }) => {
                 doctor && (
                     <>
                         <section className='w-[70%] mx-auto flex flex-row p-5 gap-4'>
-                            <Image src={assets.images.doctorSample} alt='Doctor Sample' className='rounded-full h-28 w-28' />
+                            {
+                                doctor?.doctorInformation?.avatar !== null ? (
+                                    <img width={20} height={20} src={doctor?.doctorInformation?.avatar} alt='Doctor Card' className='rounded-full h-28 w-28'/>
+                                ) : (
+                                    <Image width={28} height={28} src={assets.images.doctorCard} alt='Doctor Sample' className='rounded-full h-28 w-28' />
+                                )    
+                            }
                             <div className='flex flex-col gap-4'>
                                 <h2 className='font-semibold text-2xl'>{doctor?.position} {doctor?.doctorInformation.fullName}</h2>
                                 <div className='font-light text-gray-500'>
-                                    Nguyên Trưởng phòng chỉ đạo tuyến tại Bệnh viện Da liễu Trung ương
+                                    Bác sĩ có chuyên môn giỏi thuộc {doctor?.doctorSpecialty.nameVi} của MedX
                                     <br />
-                                    Bác sĩ từng công tác tại Bệnh viện Da liễu Trung ương
+                                    Bác sĩ từng công tác tại các bệnh viện lớn và có nhiều kinh nghiệm
                                     <br />
                                 </div>
                             </div>
@@ -158,7 +161,7 @@ const DoctorDetailPage = ({ params }) => {
                                     </div>
                                 </div>
 
-                                <div className='grid grid-cols-4 gap-4'>
+                                <div className='grid grid-cols-4 gap-4 p-1 w-600 max-h-160'>
                                     {
                                         (timeSlots.length > 0 && remainSchedule.date !== '') && timeSlots.map((timeSlot, index) => (
                                             <div

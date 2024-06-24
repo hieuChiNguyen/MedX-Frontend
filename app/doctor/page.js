@@ -7,30 +7,41 @@ import Footer from '../components/common/Footer'
 import { useRouter } from 'next/navigation'
 import { useSelector } from 'react-redux'
 import { RoleEnum } from '../../utils/enum/role.enum'
+import { useState, useEffect } from 'react'
 
 const OnlyForDoctorPage = () => {
     const router = useRouter();
     const auth = useSelector(state => state.auth);
+    const [render, setRender] = useState(false)
 
-    if (auth.role !== RoleEnum.DOCTOR) {
-        router.push('/login');
-        return null;
-    }
+    // if (auth.role !== RoleEnum.DOCTOR) {
+    //     router.push('/login');
+    //     return null;
+    // }
+
+    useEffect(() => {
+        if (auth.role !== RoleEnum.DOCTOR ) {
+            return router.push('/login');
+            // return null;
+        } else {
+            setRender(true)
+        }
+    }, [auth.id])
 
     return (
+        render &&
         <main>
             <Header />
             <section>
                 <div className='relative'>
                     <Image src={assets.images.posterDoctor} alt='Poster Doctor' className='w-screen h-500 bg-opacity-10' />
-                    <p className='text-blue-400 text-2xl absolute top-10 left-32 font-semibold'>Chào mừng 
+                    <p className='text-blue-400 text-2xl absolute top-10 left-32 font-semibold'>Chào mừng bác sĩ
                         <span className='text-blue-600'> {auth?.username} </span>
                         tham gia MedX.
                     </p>
                     <p className='text-white text-lg absolute top-20 left-32 w-fit leading-8'>
-                        MedX là nền tảng đặt lịch khám chuyên nghiệp, tiện lợi và nhanh chóng
+                        MedX là nền tảng đặt lịch khám trực tuyến chuyên nghiệp, tiện lợi và nhanh chóng.
                         <br />
-                        giúp bệnh nhân dễ dàng lựa chọn bác sĩ cùng chuyên khoa phù hợp.
                     </p>
                     <div className='flex flex-row gap-20'>
                         <Link href='/doctor/cooperate' >

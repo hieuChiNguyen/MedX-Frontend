@@ -2,16 +2,20 @@
 import '../dashboard.css'
 import { useEffect, useState } from 'react'
 import AdminSideBar from '../../components/common/admin/AdminSideBar'
+import receptionistApi from '../../api/receptionist/ReceptionistApi'
 import patientApi from '../../api/patient/PatientApi'
 import { useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import { RoleEnum } from '../../../utils/enum/role.enum'
 import Link from 'next/link'
+import toasts from '../../components/common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
-const AdminPatientPage = () => {
+const AdminReceptionistPage = () => {
     const router = useRouter();
     const auth = useSelector(state => state.auth);
-    const [listPatients, setListPatients] = useState([])
+    const [listReceptionists, setListReceptionists] = useState([])
     const [provinces, setProvinces] = useState([])
     const [districts, setDistricts] = useState([])
     const [wards, setWards] = useState([])
@@ -23,8 +27,15 @@ const AdminPatientPage = () => {
     const [selectedWardName, setSelectedWardName] = useState('')
     const [selectedGender, setSelectedGender] = useState('all')
     const [render, setRender] = useState(false)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+    const [selectedReceptionist, setSelectedReceptionist] = useState(null)
+    const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+    const [selectedReceptionistToDelete, setSelectedReceptionistToDelete] = useState(null);
+    const [editReceptionist, setEditReceptionist] = useState({
+        phone: ''
+    })
     const [currentPage, setCurrentPage] = useState(1);
-    const patientsPerPage = 5;
+    const receptionistsPerPage = 5;
 
     useEffect(() => {
         if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
@@ -35,10 +46,16 @@ const AdminPatientPage = () => {
         }
     }, [auth.id])
 
-    const getAllPatients = async () => {
+    if (auth?.role === RoleEnum.RECEPTIONIST) {
+        router.push('/admin/dashboard');
+        toasts.errorTopRight('Trang này chỉ dành cho Admin')
+        return null;
+    }
+
+    const getAllReceptionists = async () => {
         try {
-            let response = await patientApi.getAllPatients(selectedGender, selectedProvinceName, selectedDistrictName, selectedWardName)
-            setListPatients(response.data)
+            let response = await receptionistApi.getAllReceptionists(selectedGender, selectedProvinceName, selectedDistrictName, selectedWardName)
+            setListReceptionists(response.data)
 
         } catch (error) {
             console.log(error)
@@ -100,7 +117,7 @@ const AdminPatientPage = () => {
     };
 
     useEffect(() => {
-        getAllPatients()
+        getAllReceptionists()
         getListProvinces()
     }, [selectedGender, selectedProvince, selectedDistrict, selectedWard])
 
@@ -123,24 +140,80 @@ const AdminPatientPage = () => {
     }, [selectedDistrict]);
 
 
-    const formatDate = (isoString) => {
-        const date = new Date(isoString)
-        return date.toLocaleDateString('vi-VN')
-    }
+    // const formatDate = (isoString) => {
+    //     const date = new Date(isoString)
+    //     return date.toLocaleDateString('vi-VN')
+    // }
 
-    const indexOfLastPatient = currentPage * patientsPerPage
-    const indexOfFirstPatient = indexOfLastPatient - patientsPerPage
-    const currentPatients = listPatients && listPatients.length > 0 ? listPatients.slice(indexOfFirstPatient, indexOfLastPatient): []
-    const totalPatients = listPatients ? listPatients.length : 0
+    const indexOfLastReceptionist = currentPage * receptionistsPerPage
+    const indexOfFirstReceptionist = indexOfLastReceptionist - receptionistsPerPage
+    const currentReceptionists = listReceptionists && listReceptionists.length > 0 ? listReceptionists.slice(indexOfFirstReceptionist, indexOfLastReceptionist): []
+    const totalReceptionists = listReceptionists ? listReceptionists.length : 0
 
     const pageNumbers = [];
-    for (let i = 1; i <= Math.ceil(totalPatients / patientsPerPage); i++) {
+    for (let i = 1; i <= Math.ceil(totalReceptionists / receptionistsPerPage); i++) {
         pageNumbers.push(i);
     }
     
     // Chuyển trang
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+    // Mở popup sửa
+    const openEditModal = (receptionist) => {
+        setSelectedReceptionist(receptionist);
+        setEditReceptionist({ phone: receptionist.phone });
+        setIsEditModalOpen(true);
+    };
+
+    // Đóng popup sửa
+    const closeEditModal = () => {
+        setIsEditModalOpen(false);
+        setSelectedReceptionist(null);
+        setEditReceptionist({ phone: '' });
+    }
+
+    const openConfirmDelete = (receptionist) => {
+        setSelectedReceptionistToDelete(receptionist);
+        setIsConfirmDeleteOpen(true);
+    }
+    
+    const closeConfirmDelete = () => {
+        setSelectedReceptionistToDelete(null);
+        setIsConfirmDeleteOpen(false);
+    }
+
+    const handleEditReceptionist = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await receptionistApi.editReceptionist(selectedReceptionist.id, { phone: editReceptionist.phone });
+            if (response.errCode === 0) {
+                toasts.successTopRight(response.message);
+                getAllReceptionists();
+                closeEditModal();
+            } else {
+                toasts.errorTopRight(response.message);
+                getAllReceptionists();
+                closeEditModal();
+            }
+           
+        } catch (error) {
+            console.error('Error updating receptionist:', error);
+            toasts.errorTopRight('Cập nhật tiếp tân thất bại');
+        }
+    }
+
+    const handleDelete = async () => {
+        try {
+            let response = await receptionistApi.deleteReceptionist(selectedReceptionistToDelete.id);
+            toasts.successTopRight(response.message)
+            getAllReceptionists()
+            closeConfirmDelete()
+        } catch (error) {
+            console.error('Error deleting receptionist:', error);
+            closeConfirmDelete()
+        }
+    }
+    
     return (
         render &&
         <main className='w-screen flex 2xl:mx-auto 2xl:border-x-2 2xl:border-indigo-50 '>
@@ -148,13 +221,13 @@ const AdminPatientPage = () => {
             <section className='bg-indigo-50/60 w-full py-10 px-3 sm:px-10'>
                 <nav className='text-lg flex items-center justify-between content-center '>
                     <div className=' font-semibold text-xl text-gray-800 flex space-x-4 items-center'>
-                        <span className='px-3'>Quản lý bệnh nhân</span>
+                        <span className='px-3'>Quản lý tiếp tân</span>
                     </div>
 
                     <div className='flex space-x-5 md:space-x-10 text-gray-500 items-center content-center text-base '>
                         <Link
                             className='px-4 py-2 bg-indigo-100 rounded-md flex items-center space-x-2 text-indigo-500 hover:bg-indigo-200'
-                            href='/admin/patient/create'
+                            href='/admin/receptionist/create'
                         >
                             <svg
                                 className='h-5 w-5 fill-indigo-500'
@@ -321,29 +394,39 @@ const AdminPatientPage = () => {
 
                 <div>
                     <div className='invoice-table-row invoice-table-header bg-white mt-10 rounded-xl px-10 py-4 flex items-center gap-x-3 text-sm font-semibold text-gray-600'>
-                        <div className='text-center'>Bệnh nhân</div>
+                        <div className='text-center'>Tiếp tân</div>
                         <div className='text-center'>Email</div>
-                        <div className='text-center'>Ngày sinh</div>
+                        {/* <div className='text-center'>Ngày sinh</div> */}
                         <div className='text-center '>Số điện thoại</div>
                         <div className='text-center'>Địa chỉ</div>
                         <div className='text-center'>Giới tính</div>
+                        <div className='text-center'>Hành động</div>
                     </div>
 
-                    <div className='bg-white mt-5 rounded-xl text-sm  text-gray-500 divide-y divide-indigo-50 overflow-x-auto text-center shadow cursor-pointer'>
-                        {currentPatients?.map((patient, index) => (
+                    <div className='bg-white mt-5 rounded-xl text-sm  text-gray-500 divide-y divide-indigo-50 overflow-x-auto text-center shadow'>
+                        {currentReceptionists?.map((receptionist, index) => (
                             <Link 
-                                href={`/admin/patient/${patient?.id}`}
+                                // href={`/admin/receptionist/${receptionist?.id}`}
+                                href={'#'}
                                 key={index}
                                 className='invoice-table-row flex items-center gap-x-3 px-2 py-4'
                             >
-                                <div className='text-center '>{patient?.fullName}</div>
-                                <div className='text-center'>{patient?.email}</div>
+                                <div className='text-center '>{receptionist?.fullName}</div>
+                                <div className='text-center'>{receptionist?.email}</div>
+                                {/* <div className='text-center'>
+                                    {formatDate(receptionist?.birthday)}
+                                </div> */}
+                                <div className='text-center'>{receptionist?.phone}</div>
+                                <div className='text-center'>{receptionist?.address}</div>
+                                <div key={index} className='text-center'>{receptionist?.gender === 'Male' ? 'Nam' : 'Nữ' }</div>
                                 <div className='text-center'>
-                                    {formatDate(patient?.birthday)}
+                                    <button onClick={() => openEditModal(receptionist)} className='cursor-pointer'>
+                                        <i className="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button onClick={() => openConfirmDelete(receptionist)} className='ml-4 cursor-pointer'>
+                                        <i className="fa-solid fa-trash"></i>
+                                    </button>
                                 </div>
-                                <div className='text-center'>{patient?.phone}</div>
-                                <div className='text-center'>{patient?.address}</div>
-                                <div key={index} className='text-center'>{patient?.gender === 'Male' ? 'Nam' : 'Nữ' }</div>
                             </Link>
                         ))}
                     </div>
@@ -365,7 +448,7 @@ const AdminPatientPage = () => {
                             </div>
                         </li>
                         <li>
-                            {currentPage < Math.ceil(totalPatients / patientsPerPage) && (
+                            {currentPage < Math.ceil(totalReceptionists / receptionistsPerPage) && (
                                 <button 
                                     className="py-2 px-4 bg-gray-200 text-gray-600 rounded-md hover:bg-indigo-500 hover:text-white transition duration-300"
                                     onClick={() => paginate(currentPage + 1)}
@@ -377,8 +460,62 @@ const AdminPatientPage = () => {
                     </ul>
                 </div>
             </section>
+
+            {/* Modal sửa */}
+            {isEditModalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+                    <div className="bg-white rounded-lg p-8 w-full max-w-md mx-auto">
+                        <h2 className="text-2xl font-bold mb-4">Chỉnh sửa tiếp tân</h2>
+                        {selectedReceptionist && (
+                            <form>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">Tên</label>
+                                    <input type="text" defaultValue={selectedReceptionist.fullName} className="w-full px-3 py-2 border border-gray-300 rounded-md" disabled/>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">Email</label>
+                                    <input type="text" defaultValue={selectedReceptionist.email} className="w-full px-3 py-2 border border-gray-300 rounded-md" disabled/>
+                                </div>
+                                <div className="mb-4">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">Số điện thoại</label>
+                                    <input type="text" defaultValue={selectedReceptionist.phone} className="w-full px-3 py-2 border border-gray-300 rounded-md" onChange={(e) => setEditReceptionist({ phone: e.target.value })}/>
+                                </div>
+                                <div className="flex justify-end space-x-4">
+                                    <button type="button" className="px-4 py-2 bg-red-500 text-white rounded-md" onClick={closeEditModal}>Hủy</button>
+                                    <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded-md" onClick={(e) => handleEditReceptionist(e)}>Lưu</button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {isConfirmDeleteOpen && (
+                <div className='fixed inset-0 flex items-center justify-center z-50'>
+                    <div className='bg-black opacity-50 absolute inset-0'></div>
+                    <div className='bg-white rounded-lg p-8 relative z-10'>
+                        <h2 className='text-lg font-semibold mb-4'>Xác nhận xóa</h2>
+                        <p className='mb-6'>Bạn có chắc chắn muốn xóa tiếp tân này không?</p>
+                        <div className='flex justify-end'>
+                            <button
+                                className='bg-gray-500 text-white px-4 py-2 rounded-md mr-2'
+                                onClick={closeConfirmDelete}
+                            >
+                                Hủy
+                            </button>
+                            <button
+                                className='bg-red-500 text-white px-4 py-2 rounded-md'
+                                onClick={handleDelete}
+                            >
+                                Xóa
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <ToastContainer />
         </main>
     )
 }
 
-export default AdminPatientPage
+export default AdminReceptionistPage

@@ -24,8 +24,6 @@ const FeedbackModal = ({ onClose, auth }) => {
         }
     };
 
-    console.log('chẹc data', feedbackData);
-
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 w-full">
             <div className="bg-white p-6 rounded-lg w-600">

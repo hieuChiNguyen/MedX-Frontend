@@ -15,12 +15,20 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCancel, faCheckCircle } from '@fortawesome/free-solid-svg-icons'
 import { useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { storage } from '../../../firebase/firebase'
+import patientApi from '../../api/patient/PatientApi'
 // import markdownItTaskLists from 'markdown-it-task-lists';
 
 const DoctorInformationPage = () => {
     const router = useRouter()
     const auth = useSelector(state => state.auth);
     const [doctor, setDoctor] = useState(null);
+    const [showAvatar, setShowAvatar] = useState(null)
+    const [imageUrl, setImageUrl]= useState({
+        id: auth.id,
+        avatar: ''
+    })
 
     const [doctorContent, setDoctorContent] = useState({
         contentHTML: '',
@@ -40,15 +48,15 @@ const DoctorInformationPage = () => {
 
     // Finish!
     function handleEditorChange({ html, text }) {
-        console.log('html::', html)
-        console.log('text::', text)
+        // console.log('html::', html)
+        // console.log('text::', text)
         setDoctorContent({
             contentHTML: html,
             contentMarkdown: text,
             doctorId: auth.doctorId,
             specialtyId: doctor.doctorSpecialty.id,
         })
-        console.log('check doctor content::', doctorContent);
+        // console.log('check doctor content::', doctorContent);
     }
 
     useEffect(() => {
@@ -64,7 +72,7 @@ const DoctorInformationPage = () => {
         if (auth?.doctorId) {
             fetchDoctorDetail();  
         }    
-    }, []);
+    }, [auth?.doctorId]);
 
     const saveDoctorContentMarkdown = async() => {
         try {
@@ -85,6 +93,34 @@ const DoctorInformationPage = () => {
         } catch (error) {
             console.log(error)
         }
+    }
+
+    const handleShowUpdateAvatar = async (e) => {
+        if (typeof window !== 'undefined') { // Check if running in client
+            let avatarImage = e.target.files[0]
+            if (avatarImage) {
+                let objectUrl = URL.createObjectURL(avatarImage)
+                setShowAvatar(objectUrl)
+                const storageRef = ref(storage, `doctors/${auth.id}_${avatarImage.name}`)
+                await uploadBytes(storageRef, avatarImage)
+                const avatarURL = await getDownloadURL(storageRef)
+                setImageUrl({...imageUrl, avatar : avatarURL})
+            }
+        }
+    }
+
+    const handleUpdateAvatar = async () => {
+        let updateResponse = await patientApi.uploadAvatar(imageUrl)
+
+        if (updateResponse.errCode === 0) {
+            toasts.successTopRight('Cập nhật ảnh đại diện thành công')
+        }
+
+        patientApi.getPatientInformation(auth.id).then((res) => {
+            if (res && res.errCode === 0) {
+                setAvatar(res.data.avatar)
+            }
+        })
     }
 
     return (
@@ -133,6 +169,7 @@ const DoctorInformationPage = () => {
                                                 id="fullName"
                                                 placeholder="Nguyễn Văn A"
                                                 value={doctor?.doctorInformation?.fullName}
+                                                disabled
                                             />
                                         </div>
                                         </div>
@@ -151,6 +188,7 @@ const DoctorInformationPage = () => {
                                             id="phone"
                                             placeholder="+84 *** *** ***"
                                             defaultValue={doctor?.doctorInformation?.phone}
+                                            disabled
                                         />
                                         </div>
                                     </div>
@@ -170,6 +208,7 @@ const DoctorInformationPage = () => {
                                                 id="fullName"
                                                 placeholder="001202002***"
                                                 defaultValue={doctor?.citizenCard}
+                                                disabled
                                                 />
                                             </div>
                                         </div>
@@ -188,6 +227,7 @@ const DoctorInformationPage = () => {
                                                 id="specialty"
                                                 placeholder="Chọn chuyên khoa"
                                                 defaultValue={doctor?.doctorSpecialty?.nameVi}
+                                                disabled
                                             />
                                         </div>
                                     </div>
@@ -207,6 +247,7 @@ const DoctorInformationPage = () => {
                                                 id="email"
                                                 placeholder="name@company.com"
                                                 defaultValue={doctor?.doctorInformation?.email}
+                                                disabled
                                             />
                                         </div>
                                     </div>
@@ -225,10 +266,11 @@ const DoctorInformationPage = () => {
                                         id="address"
                                         placeholder="Xã/Phường, Quận/Huyện, Tỉnh/Thành phố"
                                         defaultValue={doctor?.doctorInformation?.address}
+                                        disabled
                                         />
                                     </div>
 
-                                    <div className="mb-6">
+                                    {/* <div className="mb-6">
                                         <label
                                         className="mb-3 block text-16 font-medium text-blue-600"
                                         htmlFor="description"
@@ -245,16 +287,16 @@ const DoctorInformationPage = () => {
                                             defaultValue={doctor?.description}
                                         ></textarea>
                                         </div>
-                                    </div>
+                                    </div> */}
 
-                                    <div className="flex justify-end gap-5">
+                                    {/* <div className="flex justify-end gap-5">
                                         <button
                                             className="flex justify-center rounded bg-blue-400 py-2 px-6 font-medium text-gray hover:bg-opacity-80"
                                             type="submit"
                                         >
                                             Sửa
                                         </button>
-                                    </div>
+                                    </div> */}
                                 </form>
                             </div>
                         </div>
@@ -272,7 +314,27 @@ const DoctorInformationPage = () => {
                                 <form action="#">
                                     <div className="mb-4 flex items-center gap-3">
                                         <div className="h-14 w-14">
-                                        <Image src={assets.images.avatar} alt="Avatar" className='rounded-full'/>
+                                            {doctor?.doctorInformation?.avatar ? (
+                                                <div className='rounded-full mx-auto'>
+                                                    <img
+                                                        width={300}
+                                                        height={300}
+                                                        alt='Avatar Doctor'
+                                                        src={showAvatar? showAvatar : doctor?.doctorInformation?.avatar}
+                                                        className='shadow-lg rounded-full h-16 w-16 border-none flex max-w-150-px bg-contain bg-no-repeat p-2 mx-auto'
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className='rounded-full mx-auto'>
+                                                    <Image
+                                                        width={300}
+                                                        height={300}
+                                                        alt='Avatar Doctor'
+                                                        src={showAvatar? showAvatar : assets.images.avatar}
+                                                        className='shadow-lg rounded-full h-16 w-16 border-none flex max-w-150-px bg-contain bg-no-repeat p-2 mx-auto'
+                                                    />
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div>
@@ -280,12 +342,12 @@ const DoctorInformationPage = () => {
                                                 {doctor?.position} {doctor?.doctorInformation?.fullName}
                                             </span>
                                             <span className="flex flex-row gap-3">
-                                                <button className="text-sm hover:text-blue-600 hover:font-semibold font-light text-gray-500">
+                                                {/* <button className="text-sm hover:text-blue-600 hover:font-semibold font-light text-gray-500">
                                                 Xóa ảnh
-                                                </button>
-                                                <button className="text-sm hover:text-blue-600 hover:font-semibold font-light text-gray-500">
+                                                </button> */}
+                                                {/* <button className="text-sm hover:text-blue-600 hover:font-semibold font-light text-gray-500">
                                                 Cập nhật
-                                                </button>
+                                                </button> */}
                                             </span>
                                         </div>
                                     </div>
@@ -294,9 +356,10 @@ const DoctorInformationPage = () => {
                                         className="relative mb-5.5 block w-full cursor-pointer appearance-none rounded border border-dashed border-primary bg-gray py-4 px-4 sm:py-7"
                                     >
                                         <input
-                                        type="file"
-                                        accept="image/*"
-                                        className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => handleShowUpdateAvatar(e)}
+                                            className="absolute inset-0 z-50 m-0 h-full w-full cursor-pointer p-0 opacity-0 outline-none"
                                         />
                                         <div className="flex flex-col items-center justify-center space-y-3">
                                         <span className="flex h-10 w-10 items-center justify-center rounded-full border bg-white">
@@ -331,33 +394,22 @@ const DoctorInformationPage = () => {
                                             <span className="text-blue-600">Chọn ảnh</span> để tải lên
                                         </p>
                                         <p className="mt-1">PNG, JPG or JPEG</p>
-                                        <p>(kích thước tối đa, 800 X 800px)</p>
+                                        {/* <p>(kích thước tối đa, 800 X 800px)</p> */}
                                         </div>
                                     </div>
 
                                     <div className="flex justify-end gap-4 my-5">
                                         <button
-                                        className="flex justify-center rounded bg-blue-400 py-2 px-6 font-medium text-gray hover:bg-opacity-80"
-                                        type="submit"
+                                            className="flex justify-center rounded bg-blue-400 py-2 px-6 font-medium text-gray hover:bg-opacity-80"
+                                            // type="submit"
+                                            onClick={handleUpdateAvatar}
                                         >
                                             Lưu ảnh
                                         </button>
                                     </div>
                                 </form>
                             </div>
-                        </div>
-
-                        <div className='flex flex-row gap-8 justify-center'>
-                            <Link href={'/doctor/profile/introduction'}>
-                                <button 
-                                    className='my-5 p-3 rounded-lg bg-blue-400 hover:bg-blue-300'
-                                >
-                                    Nhập thông tin giới thiệu
-                                </button>
-                            </Link>
-                        </div>
-
-                        
+                        </div>     
                     </div>   
                 </div>
 

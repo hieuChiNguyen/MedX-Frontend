@@ -9,21 +9,47 @@ import { useRouter } from 'next/navigation'
 import { RoleEnum } from '../../../utils/enum/role.enum'
 import { AppointmentStatusEnum } from '../../../utils/enum/appointment_status.enum'
 import Link from 'next/link'
+import DatePicker from 'react-datepicker'
+import { format } from 'date-fns'
+import '../datepicker.css'
+import 'react-datepicker/dist/react-datepicker.css';
 
 const AdminAppointmentPage = () => {
     const router = useRouter();
     const auth = useSelector(state => state.auth);
     const [listAppointments, setListAppointments] = useState([])
     const [specialties, setSpecialties] = useState([])
+    const [currentPage, setCurrentPage] = useState(1);
+    const [appointmentStatus, setAppointmentStatus] = useState('all')
+    const [selectedSpecialtyId, setSelectedSpecialtyId] = useState('all')
+    const [start, setStart] = useState('')
+    const [end, setEnd] = useState('')
+    const [render, setRender] = useState(false)
+    const [rangeDate, setRangeDate] = useState({
+        start: '',
+        end: ''
+    }) 
+    const appointmentsPerPage = 5
 
-    if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
-        router.push('/login');
-        return null;
-    }
+    const handleRangeDate = (fieldName, value) => {
+        setRangeDate({
+            ...rangeDate,
+            [fieldName]: value
+        });
+    };
+
+    useEffect(() => {
+        if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
+            return router.push('/');
+            // return null;
+        } else {
+            setRender(true)
+        }
+    }, [auth.id])
 
     const getAllAppointments = async () => {
         try {
-            let response = await appointmentApi.getAllAppointments()
+            let response = await appointmentApi.getAllAppointments(appointmentStatus, selectedSpecialtyId, rangeDate.start, rangeDate.end)
             setListAppointments(response.data)
         } catch (error) {
             console.log(error)
@@ -49,33 +75,48 @@ const AdminAppointmentPage = () => {
         return date.toLocaleDateString('vi-VN')
     }
 
+    const indexOfLastAppointment = currentPage * appointmentsPerPage
+    const indexOfFirstAppointment = indexOfLastAppointment - appointmentsPerPage
+    const currentAppointments = listAppointments && listAppointments.length > 0 ? listAppointments.slice(indexOfFirstAppointment, indexOfLastAppointment): []
+    const totalAppointments = listAppointments ? listAppointments.length : 0
+
+    const pageNumbers = []
+    for (let i = 1; i <= Math.ceil(totalAppointments / appointmentsPerPage); i++) {
+        pageNumbers.push(i)
+    }
+    
+    // Chuyển trang
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+    const fetchAppointments = async() => {
+        try {
+            const response = await appointmentApi.getAllAppointments(appointmentStatus, selectedSpecialtyId, rangeDate.start, rangeDate.end)
+            setListAppointments(response.data)
+        } catch (error) {
+            console.error('Error fetching patients:', error)
+        }
+    }
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                await fetchAppointments()
+            } catch (error) {
+                console.error('Error fetching data:', error)
+            }
+        };
+
+        fetchData();
+    }, [appointmentStatus, selectedSpecialtyId, start, end])
+
     return (
+        render && 
         <main className='w-screen flex 2xl:mx-auto 2xl:border-x-2 2xl:border-indigo-50 '>
             <AdminSideBar />
             <section className='bg-indigo-50/60 w-full py-10 px-3'>
                 <nav className='text-lg flex items-center justify-between content-center '>
                     <div className=' font-semibold text-xl text-gray-800 flex space-x-4 items-center'>
                         <span className='px-3'>Quản lý lịch khám</span>
-                    </div>
-
-                    <div className='flex space-x-5 md:space-x-10 text-gray-500 items-center content-center text-base '>
-                        <a
-                            className='px-4 py-2 bg-indigo-100 rounded-md flex items-center space-x-2 text-indigo-500 hover:bg-indigo-200'
-                            href='/admin/appointment/create'
-                        >
-                            <svg
-                                className='h-5 w-5 fill-indigo-500'
-                                xmlns='http://www.w3.org/2000/svg'
-                                viewBox='0 0 20 20'
-                                fill='currentColor'
-                            >
-                                <path
-                                    fillRule='evenodd'
-                                    d='M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z'
-                                    clipRule='evenodd'
-                                ></path>
-                            </svg>
-                        </a>
                     </div>
                 </nav>
 
@@ -85,15 +126,19 @@ const AdminAppointmentPage = () => {
 
                         <div className='mt-6 grid grid-cols-1 xs:grid-cols-2 gap-y-6  gap-x-6 md:flex md:space-x-6 md:gap-x-0 '>
                             <div className='flex flex-col  md:w-40  text-gray-600 text-sm space-y-2 font-semibold'>
-                                <label htmlFor='client'>Từ ngày</label>
+                                <label htmlFor='start'>Từ ngày</label>
                                 <div className='inline-flex relative'>
-                                    <input
-                                        className='bg-blue-600/90 text-white tracking-wider pl-4 pr-10 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
-                                        id='client'
-                                        name='client'
-                                        type='text'
-                                        value='2019/02/28'
-                                        onChange={() => {}}
+                                    <DatePicker
+                                        id='start'
+                                        selected={start}
+                                        onChange={(date) => {
+                                            setStart(date)
+                                            handleRangeDate('start', format(date, 'yyyy-MM-dd'))
+                                        }}
+                                        placeholderText={'Chọn ngày'}
+                                        dateFormat="dd-MM-yyyy"
+                                        showPopperArrow={true}
+                                        className='custom-datepicker bg-blue-600/90 text-white tracking-wider pl-4 pr-10 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
                                     />
 
                                     <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
@@ -116,15 +161,19 @@ const AdminAppointmentPage = () => {
                             </div>
 
                             <div className='flex flex-col md:w-40  text-gray-600 text-sm space-y-2 font-semibold'>
-                                <label htmlFor='client'>Đến ngày</label>
+                                <label htmlFor='end'>Đến ngày</label>
                                 <div className='inline-flex relative'>
-                                    <input
-                                        className='bg-indigo-800/80 text-white tracking-wider pl-4 pr-10 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
-                                        id='client'
-                                        name='client'
-                                        type='text'
-                                        value='2019/12/09'
-                                        onChange={() => {}}
+                                    <DatePicker
+                                        id='end'
+                                        selected={end}
+                                        onChange={(date) => {
+                                            setEnd(date)
+                                            handleRangeDate('end', format(date, 'yyyy-MM-dd'))
+                                        }}
+                                        placeholderText={'Chọn ngày'}
+                                        dateFormat="dd-MM-yyyy"
+                                        showPopperArrow={true}
+                                        className='custom-datepicker bg-indigo-800/80 text-white rounded-lg border-gray-200 p-3 text-sm border-2 cursor-pointer w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300'
                                     />
 
                                     <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
@@ -147,18 +196,19 @@ const AdminAppointmentPage = () => {
                             </div>
 
                             <div className='flex flex-col md:w-40  text-gray-600 text-sm space-y-2 font-semibold'>
-                                <label htmlFor='client'>Trạng thái</label>
+                                <label htmlFor='appointment'>Trạng thái</label>
                                 <div className='inline-flex relative'>
                                     <select
                                         className='bg-rose-400 text-white  px-4 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
-                                        id='client'
-                                        name='client'
+                                        id='appointment'
+                                        name='appointment'
+                                        onChange={(e) => setAppointmentStatus(e.target.value)}
                                     >
-                                        <option selected value=''>Tất cả</option>
-                                        <option value='New'>Lịch hẹn mới</option>
-                                        <option value='New'>Đã xác nhận</option>
-                                        <option value='New'>Đã khám xong</option>
-                                        <option value='New'>Đã hủy</option>
+                                        <option value='all'>Tất cả</option>
+                                        <option value='new'>Lịch hẹn mới</option>
+                                        <option value='accepted'>Đã xác nhận</option>
+                                        <option value='completed'>Đã khám xong</option>
+                                        <option value='cancel'>Đã hủy</option>
                                     </select>
                                     <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
                                         <svg
@@ -180,16 +230,17 @@ const AdminAppointmentPage = () => {
                             </div>
 
                             <div className='flex flex-col md:w-40 text-gray-600 text-sm space-y-2 font-semibold'>
-                                <label htmlFor='appointment'>Chuyên khoa</label>
+                                <label htmlFor='specialty'>Chuyên khoa</label>
                                 <div className='inline-flex relative'>
                                     <select
                                         className='bg-blue-600/70  text-white  px-4 py-3 rounded-lg appearance-none w-full outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
-                                        id='appointment'
-                                        name='appointment'
+                                        id='specialty'
+                                        name='specialty'
+                                        onChange={(e) => setSelectedSpecialtyId(e.target.value)}
                                     >
-                                        <option value=''>Tất cả</option>
+                                        <option value='all'>Tất cả</option>
                                         {specialties?.map((specialty, index) => (
-                                            <option key={index}>{specialty?.nameVi}</option>
+                                            <option key={index} value={specialty?.id}>{specialty?.nameVi}</option>
                                         ))}
                                     </select>
                                     <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
@@ -220,16 +271,16 @@ const AdminAppointmentPage = () => {
 
                 <div>
                     <div className='invoice-table-row invoice-table-header bg-white mt-10 rounded-xl py-4 flex px-5 items-center gap-x-1 text-sm font-semibold text-gray-600'>
-                        <div className='text-center'>Patient</div>
-                        <div className='text-center'>Expected Date Time</div>
-                        <div className='text-center'>Expected Doctor</div>
-                        <div className='text-center'>Reason</div>
-                        <div className='text-center'>Health Insurance</div>
-                        <div className='text-center'>Status</div>
+                        <div className='text-center'>Bệnh nhân</div>
+                        <div className='text-center'>Ngày hẹn đã đặt</div>
+                        <div className='text-center'>Chức danh yêu cầu</div>
+                        <div className='text-center'>Lý do khám</div>
+                        <div className='text-center'>BHYT</div>
+                        <div className='text-center'>Trạng thái</div>
                     </div>
 
                     <div className='bg-white mt-5 rounded-xl text-sm text-gray-500 divide-y divide-indigo-50 overflow-x-auto text-center shadow cursor-pointer'>
-                        {listAppointments?.map((appointment, index) => (
+                        {currentAppointments?.map((appointment, index) => (
                             <Link
                                 href={`/admin/appointment/${appointment.id}`}
                                 key={index}
@@ -243,13 +294,41 @@ const AdminAppointmentPage = () => {
                                 <div className='text-center'>{appointment?.examReason}</div>
                                 <div className='text-center'>{appointment?.healthInsurance ? 'Có' : 'Không'}</div>
                                 <div key={index} className='text-center '>
-                                    <span className={`px-4 py-1 rounded-lg text-white ${appointment?.status === AppointmentStatusEnum.NEW ? 'bg-rose-400' : 'bg-blue-400'}`}>
+                                    <span className={`px-4 py-1 rounded-lg text-white ${appointment?.status === AppointmentStatusEnum.NEW || appointment?.status === AppointmentStatusEnum.CANCEL ? 'bg-rose-400' : 'bg-blue-400'}`}>
                                         {appointment?.status ? appointment?.status : AppointmentStatusEnum.NEW}
                                     </span>
                                 </div>
                             </Link>
                         ))}
                     </div>
+
+                    <ul className="flex items-center mx-auto justify-center absolute -bottom-40 left-40 right-0">
+                        <li>
+                            {currentPage > 1 && (
+                                <button 
+                                    className="py-2 px-4 bg-gray-200 text-gray-600 rounded-md hover:bg-indigo-500 hover:text-white transition duration-300"
+                                    onClick={() => paginate(currentPage - 1)}
+                                >
+                                    {'<'}
+                                </button>
+                            )}
+                        </li>
+                        <li>
+                            <div className="py-2 px-4 bg-gray-200 text-gray-600 rounded-md">
+                                {currentPage}
+                            </div>
+                        </li>
+                        <li>
+                            {currentPage < Math.ceil(totalAppointments / appointmentsPerPage) && (
+                                <button 
+                                    className="py-2 px-4 bg-gray-200 text-gray-600 rounded-md hover:bg-indigo-500 hover:text-white transition duration-300"
+                                    onClick={() => paginate(currentPage + 1)}
+                                >
+                                    {'>'}
+                                </button>
+                            )}
+                        </li>
+                    </ul>
                 </div>
             </section>
         </main>

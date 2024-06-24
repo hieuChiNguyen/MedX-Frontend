@@ -7,43 +7,53 @@ import scheduleApi from '../../api/schedule/ScheduleApi'
 import Image from 'next/image'
 import assets from '../../../assets'
 import Link from 'next/link'
+import { addDays, getDay  } from 'date-fns'
 
 const SpecialtyDetailPage = ({ params }) => {
     const specialtyId = params.specialtyId
     const [doctors, setDoctors] = useState([])
     const [specialty, setSpecialty] = useState(null)
-    const [timeSlots, setTimeSlots] = useState([])
+    const [timeSlots, setTimeSlots] = useState({})
     const [remainSchedule, setRemainSchedule] = useState({
         date: '',
         doctorId: ''
-    }) 
+    })
 
     const getWeekdays = () => {
         const weekdays = [];
         const currentDate = new Date();
-        let day = currentDate.getDay(); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
-    
-        // Tính toán ngày bắt đầu của tuần
-        let startOfWeek = new Date(currentDate);
-        startOfWeek.setDate(currentDate.getDate() - (day - 1)); // Chuyển đến ngày đầu tiên của tuần (thứ 2)
-    
-        // Nếu ngày hiện tại là Chủ nhật hoặc Thứ 7, chuyển đến thứ 2 gần nhất sau
-        if (day === 0 || day === 6) {
-            startOfWeek.setDate(startOfWeek.getDate() + (day === 0 ? 1 : 2));
-        }
-    
-        // Lặp qua các ngày từ Thứ 2 đến Thứ 6
-        for (let i = 0; i < 5; i++) {
-            // Tính toán ngày của mỗi ngày trong tuần
-            const date = new Date(startOfWeek);
-            date.setDate(startOfWeek.getDate() + i);
-            weekdays.push(date);
+        let dayOfWeek = getDay(currentDate); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
+        let startOfWeek;
+
+        if (dayOfWeek === 6 ) {
+            startOfWeek = addDays(currentDate, 2); // Next Monday
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
+        } else if (dayOfWeek === 0) {
+            startOfWeek = addDays(currentDate, 1); // Next Monday
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
+        } else {
+            const daysUntilFriday = 5 - dayOfWeek; // Calculate days until next Friday
+            startOfWeek = currentDate;
+            // endOfWeek = addDays(currentDate, daysUntilFriday);
+            for (let i = 0; i <= daysUntilFriday; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
         }
     
         return weekdays;
     };
     
-    const weekdays = getWeekdays()
+    const weekdays = getWeekdays();
 
     const formatDate = (date) => {
         const year = date.getFullYear()
@@ -54,12 +64,12 @@ const SpecialtyDetailPage = ({ params }) => {
 
     useEffect(() => {
         const getDoctorsBySpecialty = async () => {
-        try {
-            const response = await doctorApi.getListDoctorsBySpecialty(specialtyId)
-            setDoctors(response.data)
-        } catch (error) {
-            console.error('Failed to fetch doctors by specialty:', error)
-        }
+            try {
+                const response = await doctorApi.getListDoctorsBySpecialty(specialtyId)
+                setDoctors(response.data)
+            } catch (error) {
+                console.error('Failed to fetch doctors by specialty:', error)
+            }
         }
 
         const getDetailSpecialty = async () => {
@@ -76,19 +86,36 @@ const SpecialtyDetailPage = ({ params }) => {
     }, [specialtyId]);
 
     useEffect(() => {
-        if (remainSchedule.date) {
-            const getRemainSchedule = async () => {
-                try {
-                    const response = await scheduleApi.getRemainScheduleByDate(remainSchedule)
-                    setTimeSlots(response.data)
-                    console.log('check t=re::', response.data);
-                } catch (error) {
-                    console.error('Error fetching remain schedules:', error)
-                }
+        // if (remainSchedule.date) {
+        //     const getRemainSchedule = async () => {
+        //         try {
+        //             const response = await scheduleApi.getRemainScheduleByDate(remainSchedule)
+        //             setTimeSlots(response.data)
+        //         } catch (error) {
+        //             console.error('Error fetching remain schedules:', error)
+        //         }
+        //     }
+        //     getRemainSchedule()
+        // }   
+        const fetchTimeSlots = async (doctorId, date) => {
+            try {
+                const response = await scheduleApi.getRemainScheduleByDate({ doctorId, date });
+                setTimeSlots(prevTimeSlots => ({
+                    ...prevTimeSlots,
+                    [doctorId]: response.data
+                }));
+            } catch (error) {
+                console.error('Error fetching remain schedules:', error);
             }
-            getRemainSchedule()
-        }   
-    }, [remainSchedule.date])
+        };
+
+        Object.keys(remainSchedule).forEach(doctorId => {
+            if (remainSchedule[doctorId]) {
+                fetchTimeSlots(doctorId, remainSchedule[doctorId]);
+            }
+        });
+    // }, [remainSchedule.date])
+    }, [remainSchedule])
 
   return (
     <main>
@@ -116,10 +143,17 @@ const SpecialtyDetailPage = ({ params }) => {
                     <div className="relative inline-block my-3">
                         <select 
                             className="block appearance-none w-full rounded-lg bg-white border border-gray-300 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-blue-600"
+                            // onChange={(e) =>  {      
+                            //     setRemainSchedule({ doctorId: doctor.id, date: e.target.value })}
+                            // }   
+                            // value={remainSchedule.date}
                             onChange={(e) =>  {      
-                                setRemainSchedule({ doctorId: doctor.id, date: e.target.value })}
+                                setRemainSchedule(prevState => ({
+                                    ...prevState,
+                                    [doctor.id]: e.target.value
+                                }))}
                             }   
-                            value={remainSchedule.date}
+                            value={remainSchedule[doctor.id] || ''}
                             name='date'
                             id='date'
                         >
@@ -138,8 +172,18 @@ const SpecialtyDetailPage = ({ params }) => {
                     </div>
 
                     <div className='grid grid-cols-4 gap-4'>
-                        {
+                        {/* {
                             (timeSlots.length > 0 && remainSchedule.date !== '') && timeSlots.map((timeSlot, index) => (
+                                <div
+                                    key={index}
+                                    className='bg-gray-200 p-2 font-semibold text-12'
+                                >
+                                    {timeSlot.timeSlot}
+                                </div>
+                            ))
+                        } */}
+                         {
+                            (timeSlots[doctor.id] && remainSchedule[doctor.id]) && timeSlots[doctor.id].map((timeSlot, index) => (
                                 <div
                                     key={index}
                                     className='bg-gray-200 p-2 font-semibold text-12'

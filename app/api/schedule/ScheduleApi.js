@@ -13,7 +13,6 @@ const scheduleApi = {
     },
 
     getRemainScheduleByDate: async (data) => {
-        console.log('okee');
         const response = await axiosClient.post('/api/v1/schedule/remain', data)
         return response
     },

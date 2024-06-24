@@ -3,25 +3,40 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { useSelector } from 'react-redux'
 import assets from '../../assets'
-import convertImage from '../../utils/ConvertImage'
+// import convertImage from '../../utils/ConvertImage'
 import Header from '../components/common/Header'
 import Navbar from '../components/common/Navbar'
 import Footer from '../components/common/Footer'
 import patientApi from '../api/patient/PatientApi'
+import { ref, uploadBytes, getDownloadURL, listAll } from 'firebase/storage'
+import { storage } from '../../firebase/firebase'
+import toasts from '../components/common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 function ProfilePage() {
     const auth = useSelector((state) => state.auth)
     const [profile, setProfile] = useState(null)
     const [showAvatar, setShowAvatar] = useState(null)
     const [avatar, setAvatar] = useState('')
+    const [render, setRender] = useState(false)
+    const [imageUrl, setImageUrl]= useState({
+        id: auth.id,
+        avatar: ''
+    })
+
+    // useEffect(() => {
+    //     setRender(true)
+    // }, [auth.id])
 
     useEffect(() => {
         const getProfile = async () => {
-            let response = await patientApi.getPatientInformation(auth.id).then((res) => {
+            await patientApi.getPatientInformation(auth.id).then((res) => {
                 if (res && res.errCode === 0) {
                     setProfile(res.data)
-                    let base64Image = Buffer.from(res.data.avatar, 'base64').toString()
-                    setAvatar(base64Image)
+                    // let base64Image = Buffer.from(res.data.avatar, 'base64').toString()
+                    // setAvatar(base64Image)
+                    setAvatar(res.data.avatar)
                 }
             })
         }
@@ -29,32 +44,67 @@ function ProfilePage() {
         getProfile()
     }, [showAvatar])
 
+    // const handleShowUpdateAvatar = async (e) => {
+    //     let avatarImage = e.target.files[0]
+    //     if (avatarImage) {
+    //         let base64 = await convertImage(avatarImage)
+    //         let objectUrl = URL.createObjectURL(avatarImage)
+    //         setShowAvatar(objectUrl)
+    //         setProfile({ ...profile, avatar: base64 })
+    //         console.log('check base64: ', base64)
+    //     }
+    // }
+
     const handleShowUpdateAvatar = async (e) => {
-        let avatarImage = e.target.files[0]
-        if (avatarImage) {
-            let base64 = await convertImage(avatarImage)
-            let objectUrl = URL.createObjectURL(avatarImage)
-            setShowAvatar(objectUrl)
-            setProfile({ ...profile, avatar: base64 })
-            console.log('check base64: ', base64)
+        if (typeof window !== 'undefined') { // Check if running in client
+            let avatarImage = e.target.files[0]
+            if (avatarImage) {
+                let objectUrl = URL.createObjectURL(avatarImage)
+                setShowAvatar(objectUrl)
+
+                const storageRef = ref(storage, `avatars/${auth.id}_${avatarImage.name}`)
+                await uploadBytes(storageRef, avatarImage)
+                const avatarURL = await getDownloadURL(storageRef)
+                console.log('check avatarURL::', avatarURL)
+                setProfile({ ...profile, avatar: avatarURL })
+                setImageUrl({ ...imageUrl, avatar: avatarURL })
+            }
         }
     }
 
-    const handleGetAvatar = async () => {
-        let updateResponse = await patientApi.uploadAvatar(profile)
-        console.log('check profile::', profile);
-        console.log('check updateResponse::', updateResponse);
+    // useEffect(() => {
+    //     if (avatar) {
+    //         handleShowUpdateAvatar()
+    //     }
+    // }, [avatar])
 
-        let response = await patientApi.getPatientInformation(auth.id).then((res) => {
+    const handleUpdateAvatar = async () => {
+        let updateResponse = await patientApi.uploadAvatar(imageUrl)
+
+        if (updateResponse.errCode === 0) {
+            toasts.successTopRight('Cập nhật ảnh đại diện thành công')
+        }
+
+        patientApi.getPatientInformation(auth.id).then((res) => {
             if (res && res.errCode === 0) {
-                console.log('check res.data.avatar line 69: ', res.data.avatar)
-                let base64Image = Buffer.from(res.data.avatar, 'base64').toString()
-                setAvatar(base64Image)
+                setAvatar(res.data.avatar)
             }
         })
     }
 
+    // const handleGetAvatar = async () => {
+    //     let updateResponse = await patientApi.uploadAvatar(profile)
+
+    //     let response = await patientApi.getPatientInformation(auth.id).then((res) => {
+    //         if (res && res.errCode === 0) {
+    //             let base64Image = Buffer.from(res.data.avatar, 'base64').toString()
+    //             setAvatar(base64Image)
+    //         }
+    //     })
+    // }
+
     return (
+        // render &&
         <main>
             <section>
                 <Header />
@@ -68,7 +118,7 @@ function ProfilePage() {
                                 <label htmlFor='avatar' className='cursor-pointer'>
                                     {profile?.avatar ? (
                                         <div className='rounded-full mx-auto'>
-                                            <Image
+                                            <img
                                                 width={300}
                                                 height={300}
                                                 alt='Avatar'
@@ -92,9 +142,9 @@ function ProfilePage() {
 
                             <button
                                 className='w-fit  bg-gray-400 mx-auto mt-16 mb-4 text-lg p-1 rounded-lg shadow-md hover:bg-blue-500 text-white'
-                                onClick={handleGetAvatar}
+                                onClick={handleUpdateAvatar}
                             >
-                                Luư ảnh
+                                Lưu ảnh
                             </button>
                             <div className='mt-1 py-10 border-t border-gray-400 text-center'>
                                 <div className='flex flex-wrap justify-center'>
@@ -145,6 +195,7 @@ function ProfilePage() {
                 </div>
                 <Footer />
             </section>
+            <ToastContainer />
         </main>
     )
 }

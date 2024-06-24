@@ -1,0 +1,4 @@
+.custom-datepicker::placeholder {
+    color: white; /* Màu của placeholder */
+    opacity: 1; /* Đảm bảo độ trong suốt (1 là không trong suốt) */
+}

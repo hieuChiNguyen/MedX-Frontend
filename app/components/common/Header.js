@@ -24,7 +24,7 @@ const Header = () => {
                         </div>
                         <div className='flex flex-col gap-1'>
                             <p className='font-semibold'>Khẩn cấp</p>
-                            <p className='text-blue-400'>0969871766</p>
+                            <p className='text-blue-400'>0969871888</p>
                         </div>
                     </div>
 
@@ -34,7 +34,7 @@ const Header = () => {
                         </div>
                         <div className='flex flex-col gap-1'>
                             <p className='font-semibold'>Giờ làm việc</p>
-                            <p className='text-blue-400'>08:00 - 18:00 Hằng ngày</p>
+                            <p className='text-blue-400'>08:00 - 17:00 Hằng ngày</p>
                         </div>
                     </div>
 

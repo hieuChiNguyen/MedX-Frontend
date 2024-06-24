@@ -49,7 +49,7 @@ const Navbar = () => {
             </div>
             
             <div className='flex flex-row gap-10 '>
-                <i className='fa-regular fa-magnifying-glass' style={{ fontSize: '20px' }}></i>
+                {/* <i className='fa-regular fa-magnifying-glass' style={{ fontSize: '20px' }}></i> */}
                 {
                     (authState.loggedIn && authState.role === RoleEnum.PATIENT) ? 
                         <div className='text-white text-center text-lg'>

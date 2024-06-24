@@ -1,17 +1,18 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import AdminSideBar from '../../../components/common/admin/AdminSideBar';
+import AdminSideBar from '../../../components/common/admin/AdminSideBar'
 import patientApi from '../../../api/patient/PatientApi'
-import toasts from '../../../components/common/Toast';
+import receptionistApi from '../../../api/receptionist/ReceptionistApi'
+import toasts from '../../../components/common/Toast'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useRouter } from 'next/navigation'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { format } from 'date-fns'
-import { RoleEnum } from '../../../../utils/enum/role.enum';
+import { RoleEnum } from '../../../../utils/enum/role.enum'
 
-const CreatePatientPage = () => {
+const CreateReceptionistPage = () => {
   const router = useRouter()
   const [input, setInput] = useState({
     email: '',
@@ -22,7 +23,7 @@ const CreatePatientPage = () => {
     birthday:'',
     phone: '',
     address: '',
-    role: RoleEnum.PATIENT
+    role: RoleEnum.RECEPTIONIST
   })
 
   const [birthday, setBirthday] = useState(null)
@@ -107,14 +108,13 @@ const genders = [
     }
   }, [selectedProvince, selectedDistrict, selectedWard])
 
-
   const handleKeyDown = async (e) => {
       if (e.key === 'Enter') {
-        createNewPatient()
+        createNewReceptionist()
       }
   }
 
-  const createNewPatient = async () => {
+  const createNewReceptionist = async () => {
       setErrorMessage('')
       const isValid = Object.values(input).every((value) => value !== '')
 
@@ -122,18 +122,18 @@ const genders = [
           setErrorMessage('Vui lòng điền đầy đủ thông tin.')
       } else {
           try {
-              let response = await patientApi.createNewPatient(input)
+              let response = await receptionistApi.createNewReceptionist(input)
 
-              // Fail to create new patient
-              if (response.message !== 'OK') {
-                  setErrorMessage(response.data.message)
+              // Fail to create new receptionist
+              if (response.errCode !== 0) {
+                  setErrorMessage(response.message)
               }
 
-              // Success to create new patient
-              if (response.data && response.message === 'OK') {
-                  toasts.successTopRight('Tạo mới bệnh nhân thành công.')
+              // Success to create new receptionist
+              if (response.data && response.errCode === 0) {
+                  toasts.successTopRight('Tạo mới tiếp tân thành công.')
                   setTimeout(function () {
-                      router.push('/admin/patient')
+                      router.push('/admin/receptionist')
                   }, 1500)
               }
           } catch (error) {
@@ -149,7 +149,7 @@ const genders = [
       <section className='bg-indigo-50/60 w-full py-10 px-3 flex flex-col'>
         <nav className='text-lg flex items-center'>
             <div className=' font-semibold text-xl text-gray-800 flex space-x-4 my-5 mx-auto'>
-                <span>Thêm bệnh nhân mới</span>
+                <span>Thêm tiếp tân mới</span>
             </div>
         </nav>
 
@@ -377,7 +377,7 @@ const genders = [
                     <button
                       type='button'
                       className="flex justify-center rounded bg-blue-400 py-2 px-6 font-medium text-gray hover:bg-opacity-80"
-                      onClick={createNewPatient}
+                      onClick={createNewReceptionist}
                     >
                       Tạo mới
                     </button>
@@ -393,4 +393,4 @@ const genders = [
   );
 };
 
-export default CreatePatientPage;
+export default CreateReceptionistPage;

@@ -55,7 +55,7 @@ const Footer = () => {
                 <div className='flex flex-col gap-4 text-white'>
                     <h3 className='text-lg font-semibold'>Liên hệ</h3>
                     <div className='flex flex-col gap-1'>
-                        <p>Call : 0969871766</p>
+                        <p>Call : 0969871888</p>
                         <p>Email: nguyenchihieu1707@gmail.com</p>
                         <p>Address: Số 1 Giải Phóng</p>
                         <div className='flex flex-row gap-4'>
@@ -80,21 +80,24 @@ const Footer = () => {
             <div className='border-t border-white py-5 px-10 text-white justify-center text-center'>
                 <div className='flex flex-row justify-between'>
                     <p className='text-sm'>
-                        <a href='#' className='block hover:underline'>
-                            &copy; {new Date().getFullYear()} All Rights Reserved
+                        <a href='/' className='block hover:underline'>
+                            {/* &copy; {new Date().getFullYear()} All Rights Reserved */}
+                            &copy; {new Date().getFullYear()} Bản quyền thuộc MedX
                         </a>
                     </p>
 
                     <div className='col-span-1 text-sm'>
                         <ul className='flex flex-row gap-10'>
                             <li>
-                                <a href='#' className='hover:underline'>
-                                    Terms and Conditions
+                                <a href='/' className='hover:underline'>
+                                    {/* Terms and Conditions */}
+                                    Điều khoản và điều kiện
                                 </a>
                             </li>
                             <li>
-                                <a href='#' className='hover:underline'>
-                                    Policy
+                                <a href='/' className='hover:underline'>
+                                    {/* Policy */}
+                                    Chính sách
                                 </a>
                             </li>
                         </ul>

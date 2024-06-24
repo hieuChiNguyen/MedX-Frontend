@@ -100,6 +100,11 @@ const doctorApi = {
     getDetailSpecialty: async (specialtyId) => {
         const response = await axiosClient.get(`/api/v1/specialty/detail/${specialtyId}`)
         return response
+    },
+
+    createNewSpecialty: async (data) => {
+        const response = await axiosJwt.post(`/api/v1/specialty/create`, data)
+        return response
     }
 }
 

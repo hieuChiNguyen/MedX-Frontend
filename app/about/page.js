@@ -1,12 +1,24 @@
 'use client'
-
 import Footer from "../components/common/Footer"
 import Header from "../components/common/Header"
 import Navbar from "../components/common/Navbar"
 import assets from "../../assets"
 import Image from "next/image"
+import Link from "next/link"
+import appointmentApi from '../api/appointment/AppointmentApi'
+import { useState, useEffect } from "react"
 
 const AboutPage = () => {
+    const [listPrices, setListPrices] = useState([])
+
+    useEffect(() => {
+        appointmentApi.getAllPrices().then((res) => {
+            if (res && res.errCode === 0) {
+                setListPrices(res.data)
+            }
+        })
+    }, [])
+
     return (
         <main>
             <Header />
@@ -34,7 +46,7 @@ const AboutPage = () => {
                             Với sứ mệnh mang lại dịch vụ chăm sóc sức khỏe tốt nhất, MedX không ngừng nỗ lực để cải thiện trải nghiệm của người dùng. Chúng tôi luôn đặt sức khỏe bệnh nhân lên hàng đầu và cam kết mang đến dịch vụ uy tín, chất lượng.
                         </p>
                         <p className="text-lg text-gray-700 mb-4">
-                            Đội ngũ <strong>bác sĩ</strong> của chúng tôi được tuyển chọn kỹ lưỡng, có chuyên môn cao và tận tâm với nghề. Chúng tôi tin rằng sức khỏe của bạn là niềm vui của chúng tôi.
+                            Đội ngũ <Link href="/doctors"><strong>bác sĩ</strong></Link> của chúng tôi được tuyển chọn kỹ lưỡng, có chuyên môn cao và tận tâm với nghề. Chúng tôi tin rằng sức khỏe của bạn là niềm vui của chúng tôi.
                         </p>
                         <p className="text-lg text-gray-700">
                             Hãy cùng MedX khám phá những tiện ích vượt trội và trải nghiệm dịch vụ chăm sóc sức khỏe tốt nhất.
@@ -67,6 +79,48 @@ const AboutPage = () => {
                                 Thông tin của bạn được bảo mật tuyệt đối, giúp bạn yên tâm sử dụng dịch vụ.
                             </p>
                         </div>
+                    </div>
+                </div>
+            </section>
+            <section className="py-16">
+                <div className="container mx-auto">
+                    <h2 className="text-3xl font-bold text-blue-800 mb-8 text-center">Bảng giá dịch vụ</h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full bg-white rounded-lg shadow-lg">
+                            <thead>
+                                <tr className="bg-blue-600 text-white">
+                                    <th className="py-3 px-6">STT</th>
+                                    <th className="py-3 px-6">Chức danh bác sĩ</th>
+                                    <th className="py-3 px-6">Giá khám</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    listPrices && listPrices.map((price, index) => (
+                                        <tr key={index} className="border-b">
+                                            <td className="py-3 px-6 text-center">{index+1}</td>
+                                            <td className="py-3 px-6 text-center">{price?.position}</td>
+                                            <td className="py-3 px-6 text-center">{price?.price}.000 VND</td>
+                                        </tr>
+                                    ))
+                                }
+                                {/* <tr className="border-b">
+                                    <td className="py-3 px-6 text-center">1</td>
+                                    <td className="py-3 px-6 text-center">Bác sĩ chuyên khoa</td>
+                                    <td className="py-3 px-6 text-center">500.000 VND</td>
+                                </tr>
+                                <tr className="border-b">
+                                    <td className="py-3 px-6 text-center">2</td>
+                                    <td className="py-3 px-6 text-center">Phó Giáo sư</td>
+                                    <td className="py-3 px-6 text-center">800.000 VND</td>
+                                </tr>
+                                <tr className="border-b">
+                                    <td className="py-3 px-6 text-center">3</td>
+                                    <td className="py-3 px-6 text-center">Giáo sư</td>
+                                    <td className="py-3 px-6 text-center">1.000.000 VND</td>
+                                </tr> */}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>

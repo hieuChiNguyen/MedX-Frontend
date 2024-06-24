@@ -48,6 +48,11 @@ const DoctorRegisterForm = () => {
         }
     };
 
+    const validateCitizenCard = (value) => {
+        const regex = /^[0-9]{10,12}$/;
+        return regex.test(value);
+    }
+
     useEffect(() => {
         getListSpecialties();
         getListPositions();
@@ -55,6 +60,7 @@ const DoctorRegisterForm = () => {
 
     const handleKeyDown = async (e) => {
         if (e.key === 'Enter') {
+            e.preventDefault();
             await handleRegisterDoctor()
         }
     }
@@ -63,16 +69,25 @@ const DoctorRegisterForm = () => {
         setErrorMessage('')
 
         const isValid = Object.values(input).every((value) => value !== '')
+        const isCitizenCardValid = validateCitizenCard(input.citizenCard)
 
         if (!isValid) {
             setErrorMessage('Vui lòng điền đầy đủ thông tin.')
+            return
         }
+
+        if (!isCitizenCardValid) {
+            setErrorMessage('Căn cước công dân không hợp lệ.')
+            return
+        }
+
         try {
             let response = await doctorApi.createNewDoctor(auth.id, input)
 
             // Fail to create new doctor
-            if (response.data && response.message !== 'OK') {
-                setErrorMessage(data.message)
+            if (response.message !== 'OK') {
+                setErrorMessage(response.message)
+                return
             }
 
             // Success to create new doctor
@@ -87,6 +102,8 @@ const DoctorRegisterForm = () => {
             console.log(error)
         }
     }
+
+    // console.log('check input doctor::', input)
 
     return (
         <section className='bg-gray-100'>

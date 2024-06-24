@@ -18,34 +18,41 @@ const AdminDashboardPage = () => {
     const [specialtiesLen, setSpecialtiesLen] = useState(0)
     const [doctorStatus, setDoctorStatus] = useState('all')
     const [appointmentStatus, setAppointmentStatus] = useState('all')
+    const [render, setRender] = useState(false)
     const specialty = 'all'
+    const gender = 'all', province = '', district = '', ward = ''
+    const from = '', to = ''
 
-    if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
-        router.push('/login');
-        return null;
-    }
+    useEffect(() => {
+        if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
+            return router.push('/');
+            // return null;
+        } else {
+            setRender(true)
+        }
+    }, [auth.id])
 
     const fetchPatients = async() => {
         try {
-            const response = await patientApi.getAllPatients();
+            const response = await patientApi.getAllPatients(gender, province, district, ward);
             setPatientsLen(response.data.length); 
         } catch (error) {
             console.error('Error fetching patients:', error);
         }
     }
 
-    const fetchDoctors = async(status) => {
+    const fetchDoctors = async() => {
         try {
-            const response = await doctorApi.getAllDoctors(status, specialty)
+            const response = await doctorApi.getAllDoctors(doctorStatus, specialty)
             setDoctorsLen(response.data.length)
         } catch (error) {
             console.error('Error fetching patients:', error)
         }
     }
 
-    const fetchAppointments = async(status) => {
+    const fetchAppointments = async() => {
         try {
-            const response = await appointmentApi.getAllAppointments(status)
+            const response = await appointmentApi.getAllAppointments(appointmentStatus, specialty, from, to)
             setAppointmentsLen(response.data.length)
         } catch (error) {
             console.error('Error fetching patients:', error)
@@ -64,7 +71,7 @@ const AdminDashboardPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                await Promise.all([fetchPatients(), fetchDoctors(doctorStatus, specialty), fetchAppointments(appointmentStatus), fetchSpecialties()]);
+                await Promise.all([fetchPatients(), fetchDoctors(doctorStatus, specialty), fetchAppointments(appointmentStatus, specialty), fetchSpecialties()]);
             } catch (error) {
                 console.error('Error fetching data:', error);
             }
@@ -74,6 +81,7 @@ const AdminDashboardPage = () => {
     }, [doctorStatus, appointmentStatus]);
 
     return (
+        render && 
         <main className='w-screen flex 2xl:mx-auto 2xl:border-x-2 2xl:border-indigo-50 '>
             <AdminSideBar />
             <section className='bg-indigo-50/60 w-full py-10 px-3 sm:px-10'>

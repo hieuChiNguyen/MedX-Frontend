@@ -29,7 +29,6 @@ const AppointmentDetailPage = ({params}) => {
     useEffect(() => {
         patientApi.getExamResult(appointmentId)
         .then((response) => {
-            console.log('check response::', response);
             setResult(response.data)
         })
         .catch((error) => console.log(error))
@@ -62,17 +61,14 @@ const AppointmentDetailPage = ({params}) => {
     const shareUrl = async (emails) => {
         try {
             const newCode = generateShareCode()
-            console.log('check check new code::', newCode);
             const shareData = {
                 emails: emails,
                 appointmentId: appointmentId,
                 code: newCode,
                 url: result?.history?.files
             }
-            console.log('check share data::', shareData);
             let response = await patientApi.shareAppointmentResult(shareData)
 
-            // Success to create new user
             if (response.errCode === 0) {
                 setIsModalOpen(false)
                 toasts.successTopRight('Chia sẻ thành công.')
@@ -118,18 +114,19 @@ const AppointmentDetailPage = ({params}) => {
                             <p><strong>Lý do khám:</strong> {appointment?.examReason}</p>
                             <p><strong>Trạng thái:</strong> {renderStatus(appointment?.status)}</p>
                         </div>
-                        <div className='flex flex-col gap-4'>
+                        {/* <div className='flex flex-col gap-4'>
                             <h3 className="text-xl font-semibold text-blue-500">Thông tin bác sĩ</h3>
                             <p><strong>Tên bác sĩ:</strong> {appointment.doctorName}</p>
                             <p><strong>Chuyên khoa:</strong> {appointment.notes}</p>
-                        </div>
+                        </div> */}
                     </div>
                     <div className='my-10 flex flex-col gap-5'>
                         <div>
                             <p className='text-xl font-semibold text-blue-500'>Kết quả chẩn đoán của bác sĩ</p>
                             <div className='border w-full h-fit focus:outline-blue-500 p-5 my-1'>{result?.history?.description}</div>
                         </div>
-                        <div>
+                        {result?.history?.files &&
+                        <div className='flex flex-col'>
                             <p className='font-semibold text-blue-500'>Đường dẫn file kết quả</p>
                             <a href={result?.history?.files} className=' w-fit h-fit hover:text-blue-500 p-5 my-1 cursor-pointer'>Tải file kết quả khám</a>
                             <button 
@@ -139,6 +136,7 @@ const AppointmentDetailPage = ({params}) => {
                                 Chia sẻ
                             </button>
                         </div>
+                        }
                     </div>
                     <Link href={'/history'} className="mt-4 inline-block text-blue-500 hover:underline">Quay lại danh sách</Link>
                 </div>

@@ -18,8 +18,9 @@ import 'react-toastify/dist/ReactToastify.css'
 function DetailDoctorAppointmentPage({params}) {
   const appointmentId = params.appointmentId
   const auth = useSelector((state) => state.auth)
-  const [fileUpload, setFileUpload] = useState(null);
-  const [fileUrls, setFileUrls] = useState([]);
+  const [fileUpload, setFileUpload] = useState(null)
+  const [fileUrls, setFileUrls] = useState([])
+  const [showModal, setShowModal] = useState(false);
   const [result, setResult] = useState({
     appointmentId: appointmentId,
     doctorId: auth.doctorId,
@@ -44,21 +45,17 @@ function DetailDoctorAppointmentPage({params}) {
     uploadBytes(fileRef, fileUpload)
       .then((snapshot) => {
         getDownloadURL(snapshot.ref).then((url) => {
-          console.log("check url::", url);
-
           // Extract file extension
           const fileExtension = fileUpload.name.split(".").pop()
 
           // Add extension to fileUrls
           setFileUrls((prev) => [...prev, { url, extension: fileExtension }])
-          handleResult('files', latestFileUrl)
+          handleResult('files', url);
         });
       })
       .catch((error) => {
         console.error(error);
-        alert("Upload failed!")
       });
-    alert("Upload success.")
   };
 
   useEffect(() => {
@@ -76,19 +73,21 @@ function DetailDoctorAppointmentPage({params}) {
       .catch((error) => {
         console.error(error);
       });
-  }, []);
 
-  const latestFileUrl = fileUrls.length > 0 ? fileUrls[fileUrls.length - 1].url : '';
+    if (fileUpload) {
+      uploadFile()
+    }
+  }, [fileUpload]);
+
 
   const updateResultExam = async() => {
     try {
       let response = await doctorApi.updateResultExam(result)
 
-      console.log('check res::', response);
-
-      // Success to create new user
+      // Success to update appointment result
       if (response.data && (response.errCode === 0 || response.errCode === 1) ) {
           toasts.successTopRight('Cập nhật kết quả khám thành công.')
+          setShowModal(false)
       }
 
       if (response.errCode !== 0 && response.errCode !== 1) {
@@ -99,16 +98,14 @@ function DetailDoctorAppointmentPage({params}) {
     }
   }
 
-  console.log('check result::', result);
+  const openModal = () => setShowModal(true);
+  const closeModal = () => setShowModal(false);
 
   return (
     <main>
         <Header />
         <section className="mx-auto w-[80%]">
             <h1 className="font-semibold my-5 text-xl">Bác sĩ cập nhật kết quả khám bệnh ở đây</h1>
-            <div className="my-10">
-                Thông tin bệnh của bệnh nhân ở đây
-            </div>
             <div className="flex flex-col gap-2">
                 <p className="my-2 font-semibold">Kết quả chẩn đoán của bác sĩ</p>
                 <textarea 
@@ -124,33 +121,45 @@ function DetailDoctorAppointmentPage({params}) {
             </div>
 
             <div className="flex flex-col gap-5 my-10">
-                <p>Tải file kết quả khám</p>
+                <p className="font-semibold">Tải file kết quả khám</p>
                 <input
                     type="file"
                     onChange={(e) => {
                       setFileUpload(e.target.files[0])
-                      // handleResult('files', e.target.files[0])
                     }}
                 />
-                <button onClick={uploadFile} className="border bg-blue-300 p-2 rounded-lg my-2 w-40">
-                    Tải tệp lên
-                </button>
-                {/* {fileUrls.map((urlObj, index) => (
-                    <p key={index}>
-                    {urlObj.url} ({urlObj.extension})
-                    </p>
-                ))} */}
-                {/* {latestFileUrl && (
-                  <div>
-                    <p>Link tệp mới nhất:</p>
-                    <a href={latestFileUrl}>{latestFileUrl}</a>
-                  </div>
-                )} */}
-                <button onClick={updateResultExam} className="border bg-blue-300 p-2 rounded-lg my-10">
+                <button onClick={openModal} className="border bg-blue-300 p-2 rounded-lg my-10">
                     Cập nhật kết quả khám
                 </button>
             </div>
         </section>
+
+        {/* Modal */}
+        {showModal && (
+          <div className="fixed z-10 inset-0 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen">
+              <div className="fixed inset-0 bg-black opacity-30"></div>
+              <div className="relative bg-white rounded-lg shadow-lg p-8">
+                <h2 className="text-xl font-semibold mb-4">Xác nhận cập nhật kết quả khám</h2>
+                <p className="mb-4">Bạn chắc chắn muốn cập nhật kết quả khám?</p>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => { updateResultExam(); }}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded mr-2"
+                  >
+                    Xác nhận
+                  </button>
+                  <button
+                    onClick={closeModal}
+                    className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded"
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         <ToastContainer />
     </main>
   );

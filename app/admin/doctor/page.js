@@ -7,19 +7,28 @@ import { useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import { RoleEnum } from '../../../utils/enum/role.enum'
 import Link from 'next/link'
+import toasts from '../../components/common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const AdminDoctorPage = () => {
     const router = useRouter();
     const auth = useSelector(state => state.auth);
+    const [render, setRender] = useState(false)
 
-    if (auth.role === RoleEnum.PATIENT || auth.role === RoleEnum.DOCTOR || auth.role === '') {
-        router.push('/login');
-        return null;
-    }
+    useEffect(() => {
+        if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
+            return router.push('/');
+            // return null;
+        } else {
+            setRender(true)
+        }
+    }, [auth.id])
 
     if (auth?.role === RoleEnum.RECEPTIONIST) {
         router.push('/admin/dashboard');
-        alert('Trang này chỉ dành cho Admin')
+        toasts.errorTopRight('Trang này chỉ dành cho Admin')
+        // alert('Trang này chỉ dành cho Admin')
         return null;
     }
 
@@ -70,6 +79,7 @@ const AdminDoctorPage = () => {
     }, [])
 
     return (
+        render && 
         <main className='w-screen flex 2xl:mx-auto 2xl:border-x-2 2xl:border-indigo-50'>
             <AdminSideBar />
             <section className='bg-indigo-50/60 w-full py-10 px-3 sm:px-10'>
@@ -220,6 +230,7 @@ const AdminDoctorPage = () => {
                     </ul>
                 </div>
             </section>
+            <ToastContainer />
         </main>
     )
 }

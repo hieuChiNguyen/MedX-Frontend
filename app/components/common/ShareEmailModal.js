@@ -26,7 +26,7 @@ const ShareEmailModal = ({ isOpen, onClose, onShare }) => {
     return (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
             <div className="bg-white rounded-lg p-6 w-96">
-                <h2 className="text-xl font-semibold mb-4">Enter Emails to Share Code</h2>
+                <h2 className="text-xl font-semibold mb-4">Nhập email chia sẻ mã xác nhận</h2>
                 {emails.map((email, index) => (
                     <div key={index} className="flex items-center mb-2">
                         <input
@@ -47,13 +47,13 @@ const ShareEmailModal = ({ isOpen, onClose, onShare }) => {
                     </div>
                 ))}
                 <button className="bg-blue-500 text-white p-2 rounded w-full mb-2" onClick={addEmailField}>
-                    Add Another Email
+                    Thêm email khác
                 </button>
                 <button className="bg-green-500 text-white p-2 rounded w-full" onClick={handleShare}>
-                    Share
+                    Chia sẻ
                 </button>
                 <button className="mt-4 text-gray-500 underline w-full" onClick={onClose}>
-                    Cancel
+                    Hủy
                 </button>
             </div>
         </div>

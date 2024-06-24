@@ -6,9 +6,10 @@ import authApi from '../../../api/auth/AuthApi'
 import toasts from '../../common/Toast'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-
+import { useRouter } from 'next/navigation'
 
 const AdminSideBar = () => {
+    const router = useRouter()
     const dispatch = useDispatch()
     const [selectedLink, setSelectedLink] = useState(null)
 
@@ -25,10 +26,11 @@ const AdminSideBar = () => {
     const handleLogOut = async (e) => {
         e.preventDefault()
         try {
-            let res = await authApi.logout()
+            await authApi.logout()
             dispatch(logout())
             localStorage.removeItem('accessToken')
             toasts.successTopCenter('Đăng xuất thành công.')
+            // return router.push('/')
         } catch (error) {
             console.error('Logout failed:', error)
             toasts.errorTopCenter('Đăng xuất thất bại.')
@@ -92,7 +94,17 @@ const AdminSideBar = () => {
                     <span>Lịch khám</span>
                 </Link>
                 <Link
-                    href={'/login'}
+                    className={`flex flex-row gap-4 text-center w-full items-center space-x-2 py-1 group hover:border-r-2 hover:border-r-indigo-700 hover:font-semibold ${
+                        selectedLink === '/admin/receptionist' ? 'font-semibold border-r-indigo-700' : ''
+                    }`}
+                    href='/admin/receptionist'
+                    onClick={() => handleLinkClick('/admin/receptionist')}
+                >
+                    <i className='fa-sharp fa-light fa-calendar-check font-light text-lg w-1/5'></i>
+                    <span>Tiếp tân</span>
+                </Link>
+                <Link
+                    href={'/'}
                     className={`flex flex-row gap-4 text-center w-full items-center space-x-2 py-1 group hover:border-r-2 hover:border-r-indigo-700 hover:font-semibold cursor-pointer`}
                     onClick={(e) => handleLogOut(e)}
                 >

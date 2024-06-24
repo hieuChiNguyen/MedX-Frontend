@@ -239,12 +239,12 @@ const DoctorInformationPage = ({params}) => {
                         {doctor?.position} {doctor?.doctorInformation?.fullName}
                       </span>
                       <span className="flex flex-row gap-3">
-                        <button className="text-sm hover:text-blue-600 hover:font-semibold font-light text-gray-500">
+                        {/* <button className="text-sm hover:text-blue-600 hover:font-semibold font-light text-gray-500">
                           Xóa ảnh
-                        </button>
-                        <button className="text-sm hover:text-blue-600 hover:font-semibold font-light text-gray-500">
+                        </button> */}
+                        {/* <button className="text-sm hover:text-blue-600 hover:font-semibold font-light text-gray-500">
                           Cập nhật
-                        </button>
+                        </button> */}
                       </span>
                     </div>
                   </div>
@@ -290,7 +290,7 @@ const DoctorInformationPage = ({params}) => {
                         <span className="text-blue-600">Chọn ảnh</span> để tải lên
                       </p>
                       <p className="mt-1">PNG, JPG or JPEG</p>
-                      <p>(kích thước tối đa, 800 X 800px)</p>
+                      {/* <p>(kích thước tối đa, 800 X 800px)</p> */}
                     </div>
                   </div>
 

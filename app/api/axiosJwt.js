@@ -19,7 +19,6 @@ axiosJwt.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
         } else {
             // Xử lý trường hợp token không tồn tại, ví dụ chuyển hướng đến trang đăng nhập
-            // window.location.href = '/login';
         }
         return config;
     },

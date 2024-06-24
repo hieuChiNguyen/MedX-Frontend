@@ -7,6 +7,9 @@ import { useSelector } from 'react-redux'
 import appointmentApi from '../api/appointment/AppointmentApi'
 import Link from 'next/link'
 import { format } from 'date-fns'
+import toasts from '../components/common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const AppointmentsHistoryPatientPage = () => {
     const auth = useSelector(state => state.auth)
@@ -24,6 +27,23 @@ const AppointmentsHistoryPatientPage = () => {
 
         fetchAppointments()
     }, [])
+
+    const handleCancelAppointment = async (appointmentId) => {
+        try {
+            let response = await appointmentApi.cancelAppointment(appointmentId)
+            if (response.errCode === 0) {
+                toasts.successTopRight('Hủy lịch khám thành công.')
+                setAppointments(appointments.map(appointment => 
+                    appointment.id === appointmentId ? { ...appointment, status: 'Đã hủy' } : appointment
+                ))
+            } else {
+                toasts.errorTopRight('Hủy lịch khám thất bại.')
+            }
+        } catch (error) {
+            console.log(error)
+            toasts.errorTopRight('Có lỗi xảy ra.')
+        }
+    }
 
     const renderStatus = (status) => {
         switch (status) {
@@ -54,6 +74,14 @@ const AppointmentsHistoryPatientPage = () => {
                                         <p className='text-sm'>Ngày hẹn: {format(appointment?.appointmentDate, 'dd/MM/yyyy')}</p>
                                         <p className='text-sm'>Khung giờ đặt: {appointment?.expectedTime}</p>
                                         <p className='text-sm'>Trạng thái: {renderStatus(appointment?.status)}</p>
+                                        {(appointment?.status === 'Lịch hẹn mới' )  && (
+                                            <button 
+                                                className="mt-2 py-1 px-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-200 text-sm"
+                                                onClick={() => handleCancelAppointment(appointment.id)}
+                                            >
+                                                Hủy lịch khám
+                                            </button>
+                                        )}
                                     </div>
                                     <div className="flex-grow bg-white py-2">
                                         <Link href={`/history/${appointment.id}`} className='p-2 font-semibold hover:text-blue-500 hover:underline'> Xem chi tiết </Link>
@@ -67,8 +95,8 @@ const AppointmentsHistoryPatientPage = () => {
                         </div>
                     )
                 }
-                
             </section>
+            <ToastContainer />
             <Footer />
         </main>
     )

@@ -11,9 +11,9 @@ import appointmentApi from '../../../api/appointment/AppointmentApi'
 import patientApi from '../../../api/patient/PatientApi'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
-import { format } from 'date-fns'
 import { ExpectedTimeSlotEnum } from '../../../../utils/enum/expected_time_slot.enum'
 import AdminSideBar from '../../../components/common/admin/AdminSideBar'
+import { format, addDays, getDay  } from 'date-fns'
 
 const PatientInfoPage = ({params}) => {
     const router = useRouter()
@@ -117,6 +117,22 @@ const PatientInfoPage = ({params}) => {
                 console.log(error)
             }
         }
+    }
+
+    const today = new Date()
+    const dayOfWeek = getDay(today)
+    let minDate, maxDate;
+
+    if (dayOfWeek === 6) {
+        minDate = addDays(today, 2); // Next Monday
+        maxDate = addDays(today, 6); // Next Friday
+    } else if (dayOfWeek === 0) {
+        minDate = addDays(today, 1); // Next Monday
+        maxDate = addDays(today, 5); // Next Friday
+    } else {
+        const daysUntilFriday = 5 - dayOfWeek; // Calculate days until next Friday
+        minDate = today;
+        maxDate = addDays(today, daysUntilFriday); // Calculate the date for the upcoming Friday
     }
 
     return (
@@ -231,6 +247,8 @@ const PatientInfoPage = ({params}) => {
                                     dateFormat="dd-MM-yyyy"
                                     showPopperArrow={true}
                                     className='w-full rounded-lg border-gray-200 p-3 text-sm border-2'
+                                    minDate={minDate}
+                                    maxDate={maxDate}
                                 />
                             </div>
 

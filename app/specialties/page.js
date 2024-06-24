@@ -2,7 +2,6 @@
 import Footer from '../components/common/Footer'
 import Header from '../components/common/Header'
 import Navbar from '../components/common/Navbar'
-import Image from 'next/image'
 import assets from '../../assets'
 import { useEffect, useState } from 'react'
 import doctorApi from '../api/doctor/DoctorApi'
@@ -47,8 +46,8 @@ const ListSpecialtiesPage = () => {
                 <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5'>
                     {listSpecialties?.map((specialty, index) => (
                         <div key={index} className='flex flex-col rounded-lg overflow-hidden text-center my-5 w-[90%]'>
-                            <Image src={assets.images.CoXuongKhop} alt='Special Card' />
-                            <div className='flex flex-col gap-2 bg-blue-email py-2 px-3 '>
+                            <img width={20} height={20} src={specialty?.image ?? assets.images.CoXuongKhop} alt={specialty.nameEn} className='w-40 h-40 mx-auto rounded-2xl p-1'/>
+                            <div className='flex flex-col gap-2 bg-blue-email py-2 px-1'>
                                 <p className='text-blue-950 font-semibold'>Chuyên khoa: {specialty.nameVi}</p>
                             </div>
 

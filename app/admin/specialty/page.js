@@ -6,6 +6,18 @@ import doctorApi from '../../api/doctor/DoctorApi'
 import { useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import { RoleEnum } from '../../../utils/enum/role.enum'
+import assets from '../../../assets'
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    listAll,
+} from "firebase/storage"
+import { storage } from '../../../firebase/firebase'
+import { v4 } from "uuid"
+import toasts from '../../components/common/Toast'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 const AdminSpecialtyPage = () => {
     const router = useRouter();
@@ -13,18 +25,24 @@ const AdminSpecialtyPage = () => {
     const [listSpecialties, setListSpecialties] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
     const [showModal, setShowModal] = useState(false);
+    const [render, setRender] = useState(false)
     const [newSpecialty, setNewSpecialty] = useState({
         nameVi: '',
         nameEn: '',
         image: '',
         description: ''
     });
+    const [imageUpload, setImageUpload] = useState(null);
     const specialtiesPerPage = 10;
 
-    if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
-        router.push('/login');
-        return null;
-    }
+    useEffect(() => {
+        if (auth.role !== RoleEnum.ADMIN && auth.role !== RoleEnum.RECEPTIONIST) {
+            return router.push('/');
+            // return null;
+        } else {
+            setRender(true)
+        }
+    }, [auth.id])
 
     const getListSpecialties = async () => {
         try {
@@ -60,19 +78,47 @@ const AdminSpecialtyPage = () => {
             image: '',
             description: ''
         });
+        setImageUpload(null);
     };
 
     const handleAddSpecialty = async () => {
         try {
-            // Thực hiện logic thêm chuyên khoa mới ở đây
-            console.log('New Specialty:', newSpecialty);
+            if (imageUpload) {
+                await uploadFile();
+            } else {
+                // Call your API to add the specialty without an image
+                // const response = await doctorApi.createNewSpecialty(newSpecialty);
+            }
+            getListSpecialties();
             closeModal();
         } catch (error) {
             console.error('Error adding specialty:', error);
         }
     };
 
+    const uploadFile = async () => {
+        if (imageUpload == null) return;
+        const imageRef = ref(storage, `images/${imageUpload.name + v4()}`);
+        uploadBytes(imageRef, imageUpload).then((snapshot) => {
+            getDownloadURL(snapshot.ref).then(async (url) => {
+                console.log('check url::', url)
+                setNewSpecialty({ ...newSpecialty, image: url });
+                // Now call your API to add the specialty with the image URL
+                const response = await doctorApi.createNewSpecialty({ ...newSpecialty, image: url })
+                if (response.errCode === 0) {
+                    toasts.successTopRight('Thêm chuyên khoa mới thành công.')
+                }
+                getListSpecialties();
+                closeModal();
+            });
+        });
+    };
+
+    // console.log('imageUpdload::', imageUpload)
+    // console.log('check new::', newSpecialty);
+
     return (
+        render &&
         <main className='w-screen flex 2xl:mx-auto 2xl:border-x-2 2xl:border-indigo-50 '>
             <AdminSideBar />
             <section className='bg-indigo-50/60 w-full py-10 px-3 sm:px-10'>
@@ -121,13 +167,15 @@ const AdminSpecialtyPage = () => {
                                 <div className='text-center '>{index + 1}</div>
                                 <div className='text-center'>{specialty?.nameVi}</div>     
                                 <div className='text-center'>{specialty?.nameEn}</div>
-                                <div className='text-center'>{specialty?.image}</div>
+                                <div className='text-center px-10'>
+                                    <img src={specialty?.image ?? assets.images.CoXuongKhop} width={20} height={20} className='w-fit'/>
+                                </div>
                                 <div className='text-center'>{specialty?.description}</div>
                             </div>
                         ))}
                     </div>
 
-                    <ul className="flex items-center mx-auto justify-center absolute -bottom-20 left-40 right-0">
+                    <ul className="flex items-center mx-auto justify-center absolute left-40 right-0">
                         <li>
                             {currentPage > 1 && (
                                 <button 
@@ -176,12 +224,11 @@ const AdminSpecialtyPage = () => {
                                 onChange={(e) => setNewSpecialty({ ...newSpecialty, nameEn: e.target.value })} 
                                 className="border p-2 rounded-md col-span-2" 
                             />
-                            <input 
-                                type="text" 
-                                placeholder="Đường dẫn ảnh" 
-                                value={newSpecialty.image} 
-                                onChange={(e) => setNewSpecialty({ ...newSpecialty, image: e.target.value })} 
-                                className="border p-2 rounded-md col-span-2" 
+                            <p>Ảnh chuyên khoa</p>
+                            <input
+                                type="file"
+                                onChange={(event) => setImageUpload(event.target.files[0])}
+                                className="border p-2 rounded-md col-span-2"
                             />
                             <textarea 
                                 placeholder="Mô tả" 
@@ -207,6 +254,7 @@ const AdminSpecialtyPage = () => {
                     </div>
                 </div>
             )}
+            <ToastContainer />
         </main>
     )
 }

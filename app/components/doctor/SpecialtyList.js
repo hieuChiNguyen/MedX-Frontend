@@ -9,8 +9,8 @@ const SpecialtyList = ({ listSpecialties }) => {
         <div className='flex flex-row flex-wrap justify-center w-full gap-10'>
             {listSpecialties?.map((specialty, index) => (
                 <div key={index} className='flex flex-col w-[20%] rounded-lg overflow-hidden text-center my-5'>
-                    <Image src={assets.images.CoXuongKhop} alt='Specialty Image'/>
-                    <div className='flex flex-col gap-2 bg-blue-email py-2'>
+                    <img width={20} height={20} src={specialty?.image ?? assets.images.CoXuongKhop} alt={specialty.nameEn} className='w-40 h-40 mx-auto rounded-2xl p-1'/>
+                    <div className='flex flex-col gap-2 bg-blue-email py-2 px-1'>
                         <p className='text-blue-950 font-semibold'>{specialty.nameVi}</p>
                     </div>
 

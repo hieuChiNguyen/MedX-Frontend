@@ -11,10 +11,10 @@ import appointmentApi from '../api/appointment/AppointmentApi'
 import patientApi from '../api/patient/PatientApi'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
-import { format } from 'date-fns'
+import { format, addDays, getDay  } from 'date-fns'
 import { ExpectedTimeSlotEnum } from '../../utils/enum/expected_time_slot.enum'
 
-const PatientInfoPage = () => {
+const BookAppointmentPage = () => {
     const router = useRouter()
     const auth = useSelector(state => state.auth); 
     const patientId = auth.id
@@ -95,8 +95,6 @@ const PatientInfoPage = () => {
         }
     }
 
-    console.log('check input::', input);
-
     const bookAppointment = async () => {
         setErrorMessage('')
         const isValid = Object.values(input).every((value) => value !== '')
@@ -108,7 +106,7 @@ const PatientInfoPage = () => {
                 let response = await appointmentApi.createNewAppointment(input)
 
                 // Fail to create new patient
-                if (response.data && response.errCode !== 0) {
+                if (response.errCode !== 0) {
                     setErrorMessage(response.message)
                     toasts.errorTopRight('Đặt lịch khám thất bại.')
                 }
@@ -124,6 +122,22 @@ const PatientInfoPage = () => {
                 console.log(error)
             }
         }
+    }
+
+    const today = new Date()
+    const dayOfWeek = getDay(today)
+    let minDate, maxDate;
+
+    if (dayOfWeek === 6) {
+        minDate = addDays(today, 2); // Next Monday
+        maxDate = addDays(today, 6); // Next Friday
+    } else if (dayOfWeek === 0) {
+        minDate = addDays(today, 1); // Next Monday
+        maxDate = addDays(today, 5); // Next Friday
+    } else {
+        const daysUntilFriday = 5 - dayOfWeek; // Calculate days until next Friday
+        minDate = today;
+        maxDate = addDays(today, daysUntilFriday); // Calculate the date for the upcoming Friday
     }
 
     return (
@@ -151,214 +165,231 @@ const PatientInfoPage = () => {
                     </div>
 
                     <div className='rounded-lg bg-white p-8 shadow-lg lg:col-span-3 lg:p-10'>
-                        <form className='flex flex-col gap-5'>
-                            <h1 className='text-blue-600 text-2xl'>Thông tin bệnh nhân đặt khám</h1>
-                            {
-                                !auth?.id &&
-                                (
-                                    <h3 className='font-light italic text-red-500'>
-                                        * Lưu ý: Đăng nhập trước khi đặt khám &nbsp; 
-                                        <Link href={'/login'} className='text-blue-600 underline font-bold cursor-pointer'>
-                                            Đăng nhập
-                                        </Link>
-                                    </h3>
-                                )
-                            }
-                            
-                            <div>
-                                <label className='sr-only' htmlFor='email'>
-                                    Email
-                                </label>
-                                <input
-                                    className='w-full rounded-lg border-gray-200 p-3 text-sm border-1'
-                                    placeholder='Email'
-                                    type='email'
-                                    id='email'
-                                    name='email'
-                                    value={patient?.email ?? ''}
-                                    onClick={checkLogin}
-                                    onKeyDown={handleKeyDown}
-                                />
-                            </div>
+                        {
+                            !auth?.id ?
+                            (
+                                <h3 className='font-light italic text-red-500'>
+                                    * Lưu ý: Đăng nhập trước khi đặt khám &nbsp; 
+                                    <Link href={'/login'} className='text-blue-600 underline font-bold cursor-pointer'>
+                                        Đăng nhập
+                                    </Link>
+                                </h3>
+                            ):(
+                                <form className='flex flex-col gap-5'>
+                                    <h1 className='text-blue-600 text-2xl'>Thông tin bệnh nhân đặt khám</h1>
+                                    {/* {
+                                        !auth?.id ?
+                                        (
+                                            <h3 className='font-light italic text-red-500'>
+                                                * Lưu ý: Đăng nhập trước khi đặt khám &nbsp; 
+                                                <Link href={'/login'} className='text-blue-600 underline font-bold cursor-pointer'>
+                                                    Đăng nhập
+                                                </Link>
+                                            </h3>
+                                        ):(
 
-                            <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                                <div>
-                                    <label className='sr-only' htmlFor='name'>
-                                        Họ và tên
-                                    </label>
-                                    <input
-                                        className='w-full rounded-lg border-gray-200 p-3 text-sm border-1'
-                                        placeholder='Họ và tên'
-                                        type='text'
-                                        id='name'
-                                        name='fullName'
-                                        value={patient?.fullName ?? ''}
-                                        onClick={checkLogin}
-                                        onKeyDown={handleKeyDown}
-                                    />
-                                </div>
+                                        ) 
+                                    } */}
+                                    
+                                    <div>
+                                        <label className='sr-only' htmlFor='email'>
+                                            Email
+                                        </label>
+                                        <input
+                                            className='w-full rounded-lg border-gray-200 p-3 text-sm border-1 bg-gray-200'
+                                            placeholder='Email'
+                                            type='email'
+                                            id='email'
+                                            name='email'
+                                            value={patient?.email ?? ''}
+                                            onClick={checkLogin}
+                                            onKeyDown={handleKeyDown}
+                                        />
+                                    </div>
 
-                                <div>
-                                    <label className='sr-only' htmlFor='phone'>
-                                        Số điện thoại
-                                    </label>
-                                    <input
-                                        className='w-full rounded-lg border-gray-200 p-3 text-sm border-1'
-                                        placeholder='Số điện thoại'
-                                        type='tel'
-                                        id='phone'
-                                        name='phoneNumber'
-                                        value={patient?.phone ?? ''}
-                                        onClick={checkLogin}
-                                        onKeyDown={handleKeyDown}
-                                    />
-                                </div>
-                            </div>
+                                    <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
+                                        <div>
+                                            <label className='sr-only' htmlFor='name'>
+                                                Họ và tên
+                                            </label>
+                                            <input
+                                                className='w-full rounded-lg border-gray-200 p-3 text-sm border-1 bg-gray-200'
+                                                placeholder='Họ và tên'
+                                                type='text'
+                                                id='name'
+                                                name='fullName'
+                                                value={patient?.fullName ?? ''}
+                                                onClick={checkLogin}
+                                                onKeyDown={handleKeyDown}
+                                            />
+                                        </div>
 
-                            <div className='grid grid-cols-1 gap-4 sm:grid-cols-1'>
-                                <div>
-                                    <label className='sr-only' htmlFor='address'>
-                                        Chi tiết địa chỉ
-                                    </label>
-                                    <input
-                                        className='w-full rounded-lg border-gray-200 p-3 text-sm border-1'
-                                        placeholder='Địa chỉ'
-                                        type='text'
-                                        id='address'
-                                        name='address'
-                                        value={patient?.address ?? ''}
-                                        onClick={checkLogin}
-                                        onKeyDown={handleKeyDown}
-                                    />
-                                </div>
-                            </div>
+                                        <div>
+                                            <label className='sr-only' htmlFor='phone'>
+                                                Số điện thoại
+                                            </label>
+                                            <input
+                                                className='w-full rounded-lg border-gray-200 p-3 text-sm border-1 bg-gray-200'
+                                                placeholder='Số điện thoại'
+                                                // type='tel'
+                                                // id='phone'
+                                                // name='phoneNumber'
+                                                value={patient?.phone ?? ''}
+                                                onClick={checkLogin}
+                                                onKeyDown={handleKeyDown}
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className='grid grid-cols-1 gap-4 text-center sm:grid-cols-3'>
-                                <select
-                                    className={`w-full rounded-lg border-gray-200 p-3 text-sm border-1 ${selectedSpecialty ? 'text-black' : 'text-gray-400'}`}
-                                    onChange={(e) => {
-                                        handleInput('specialtyId', e.target.value)
-                                        setSelectedSpecialty(e.target.value)
-                                    }}
-                                    onClick={checkLogin}
-                                >
-                                    <option value='specialtyId' selected disabled hidden>
-                                        Chọn chuyên khoa
-                                    </option>
-                                    {specialties?.map((specialty) => (
-                                        <option key={specialty.id} value={specialty.id}>
-                                            {specialty.nameVi}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <div className='grid grid-cols-1 gap-4 sm:grid-cols-1'>
+                                        <div>
+                                            <label className='sr-only' htmlFor='address'>
+                                                Chi tiết địa chỉ
+                                            </label>
+                                            <input
+                                                className='w-full rounded-lg border-gray-200 p-3 text-sm border-1 bg-gray-200'
+                                                placeholder='Địa chỉ'
+                                                type='text'
+                                                id='address'
+                                                name='address'
+                                                value={patient?.address ?? ''}
+                                                onClick={checkLogin}
+                                                onKeyDown={handleKeyDown}
+                                            />
+                                        </div>
+                                    </div>
 
-                                <div>
-                                    <label className='sr-only' htmlFor='date'>
-                                        Ngày khám
-                                    </label>
-                                    <DatePicker
-                                        placeholderText='Ngày khám (dd-MM-yyyy)'
-                                        selected={appointmentDate}
-                                        onChange={(date) => {
-                                            setAppointmentDate(date)
-                                            handleInput('appointmentDate', format(date, 'yyyy-MM-dd'))
-                                        }}
-                                        onClick={checkLogin}
-                                        dateFormat="dd-MM-yyyy"
-                                        showPopperArrow={true}
-                                        className='w-full rounded-lg border-gray-200 p-3 text-sm border-2'
-                                    />
-                                </div>
-  
-                                <select
-                                    className={`w-full rounded-lg border-gray-200 p-3 text-sm border-1 ${input.healthInsurance ? 'text-black' : 'text-gray-400'}`}
-                                    onChange={(e) => {
-                                        handleInput('healthInsurance', e.target.value)
-                                    }}
-                                    onClick={checkLogin}
-                                >
-                                    <option value='expectedTime' selected disabled hidden>
-                                        Sử dụng bảo hiểm y tế ?
-                                    </option>
-                                    <option key={true} value={true}>
-                                        Có sử dụng
-                                    </option>
-                                    <option key={false} value={false}>
-                                        Không sử dụng
-                                    </option>
-                                </select>         
-                            </div>
+                                    <div className='grid grid-cols-1 gap-4 text-center sm:grid-cols-3'>
+                                        <select
+                                            className={`w-full rounded-lg border-gray-200 p-3 text-sm border-1 ${selectedSpecialty ? 'text-black' : 'text-gray-400'}`}
+                                            onChange={(e) => {
+                                                handleInput('specialtyId', e.target.value)
+                                                setSelectedSpecialty(e.target.value)
+                                            }}
+                                            onClick={checkLogin}
+                                        >
+                                            <option value='specialtyId' selected disabled hidden>
+                                                Chọn chuyên khoa
+                                            </option>
+                                            {specialties?.map((specialty) => (
+                                                <option key={specialty.id} value={specialty.id}>
+                                                    {specialty.nameVi}
+                                                </option>
+                                            ))}
+                                        </select>
 
-                            <div className='grid grid-cols-1 gap-4 text-center sm:grid-cols-2'>
-                                <select
-                                    className={`w-full rounded-lg border-gray-200 p-3 text-sm border-1 ${selectedPosition ? 'text-black' : 'text-gray-400'}`}
-                                    onChange={(e) => {
-                                        handleInput('expectedPosition', e.target.value)
-                                        setSelectedPosition(e.target.value)
-                                    }}
-                                    onClick={checkLogin}
-                                >
-                                    <option defaultValue='' selected disabled hidden>
-                                        Bạn muốn khám với ?
-                                    </option>
-                                    {positions?.map((position) => (
-                                        <option key={position.id} value={position.position}>
-                                            {position.position}
-                                        </option>
-                                    ))}
-                                </select>
+                                        <div>
+                                            <label className='sr-only' htmlFor='date'>
+                                                Ngày khám
+                                            </label>
+                                            <DatePicker
+                                                placeholderText='Ngày khám (dd-MM-yyyy)'
+                                                selected={appointmentDate}
+                                                onChange={(date) => {
+                                                    setAppointmentDate(date)
+                                                    handleInput('appointmentDate', format(date, 'yyyy-MM-dd'))
+                                                }}
+                                                onClick={checkLogin}
+                                                dateFormat="dd-MM-yyyy"
+                                                showPopperArrow={true}
+                                                className='w-full rounded-lg border-gray-200 p-3 text-sm border-2'
+                                                minDate={minDate}
+                                                maxDate={maxDate}
+                                            />
+                                        </div>
 
-                                <select
-                                    className={`w-full rounded-lg border-gray-200 p-3 text-sm border-1 ${input.expectedTime ? 'text-black' : 'text-gray-400'}`}
-                                    onChange={(e) => {
-                                        handleInput('expectedTime', e.target.value)
-                                    }}
-                                    onClick={checkLogin}
-                                >
-                                    <option value='expectedTime' selected disabled hidden>
-                                        Chọn khung giờ
-                                    </option>
-                                    {timeSlots?.map((timeSlot) => (
-                                        <option key={timeSlot.EN} value={timeSlot.EN}>
-                                            {timeSlot.VI}
-                                        </option>
-                                    ))}
-                                </select>  
-                            </div>
+                                        <select
+                                            className={`w-full rounded-lg border-gray-200 p-3 text-sm border-1 ${input.healthInsurance ? 'text-black' : 'text-gray-400'}`}
+                                            onChange={(e) => {
+                                                handleInput('healthInsurance', e.target.value)
+                                            }}
+                                            onClick={checkLogin}
+                                        >
+                                            <option value='expectedTime' selected disabled hidden>
+                                                Sử dụng bảo hiểm y tế ?
+                                            </option>
+                                            <option key={true} value={true}>
+                                                Có sử dụng
+                                            </option>
+                                            <option key={false} value={false}>
+                                                Không sử dụng
+                                            </option>
+                                        </select>         
+                                    </div>
 
-                            <div>
-                                <label className='sr-only' htmlFor='examReason'>
-                                    Lý do khám bệnh
-                                </label>
+                                    <div className='grid grid-cols-1 gap-4 text-center sm:grid-cols-2'>
+                                        <select
+                                            className={`w-full rounded-lg border-gray-200 p-3 text-sm border-1 ${selectedPosition ? 'text-black' : 'text-gray-400'}`}
+                                            onChange={(e) => {
+                                                handleInput('expectedPosition', e.target.value)
+                                                setSelectedPosition(e.target.value)
+                                            }}
+                                            onClick={checkLogin}
+                                        >
+                                            <option defaultValue='' selected disabled hidden>
+                                                Bạn muốn khám với ?
+                                            </option>
+                                            {positions?.map((position) => (
+                                                <option key={position.id} value={position.position}>
+                                                    {position.position}
+                                                </option>
+                                            ))}
+                                        </select>
 
-                                <textarea
-                                    className='w-full rounded-lg border-gray-200 p-3 text-sm border-1'
-                                    placeholder='Mô tả chi tiết tình trạng sức khỏe của bạn (Bệnh nhân vui lòng ghi đầy đủ nhất có thể)'
-                                    rows='8'
-                                    id='examReason'
-                                    name='examReason'
-                                    value={input.examReason}
-                                    onChange={(e) => {
-                                        handleInput('examReason', e.target.value)
-                                    }}
-                                    onClick={checkLogin}
-                                    onKeyDown={handleKeyDown}
-                                ></textarea>
-                            </div>
+                                        <select
+                                            className={`w-full rounded-lg border-gray-200 p-3 text-sm border-1 ${input.expectedTime ? 'text-black' : 'text-gray-400'}`}
+                                            onChange={(e) => {
+                                                handleInput('expectedTime', e.target.value)
+                                            }}
+                                            onClick={checkLogin}
+                                        >
+                                            <option value='expectedTime' selected disabled hidden>
+                                                Chọn khung giờ
+                                            </option>
+                                            {timeSlots?.map((timeSlot) => (
+                                                <option key={timeSlot.EN} value={timeSlot.EN}>
+                                                    {timeSlot.VI}
+                                                </option>
+                                            ))}
+                                        </select>  
+                                    </div>
 
-                            {/* Error Notification */}
-                            <div className='w-full text-red-600 text-center text-sm'>{errorMessage}</div>
+                                    <div>
+                                        <label className='sr-only' htmlFor='examReason'>
+                                            Lý do khám bệnh
+                                        </label>
 
-                            <div className='mt-4'>
-                                <button
-                                    type='button'
-                                    className='inline-block w-full rounded-lg bg-blue-500 px-5 py-3 font-medium text-white sm:w-auto'
-                                    onClick={bookAppointment}
-                                >
-                                    Đặt lịch
-                                </button>
-                            </div>
-                        </form>
+                                        <textarea
+                                            className='w-full rounded-lg border-gray-200 p-3 text-sm border-1'
+                                            placeholder='Mô tả chi tiết tình trạng sức khỏe của bạn (Bệnh nhân vui lòng ghi đầy đủ nhất có thể)'
+                                            rows='8'
+                                            id='examReason'
+                                            name='examReason'
+                                            value={input.examReason}
+                                            onChange={(e) => {
+                                                handleInput('examReason', e.target.value)
+                                            }}
+                                            onClick={checkLogin}
+                                            onKeyDown={handleKeyDown}
+                                        ></textarea>
+                                    </div>
+
+                                    {/* Error Notification */}
+                                    <div className='w-full text-red-600 text-center text-sm'>{errorMessage}</div>
+
+                                    <div className='mt-4'>
+                                        <button
+                                            type='button'
+                                            className='inline-block w-full rounded-lg bg-blue-500 px-5 py-3 font-medium text-white sm:w-auto'
+                                            onClick={bookAppointment}
+                                        >
+                                            Đặt lịch
+                                        </button>
+                                    </div>
+                                </form>
+                            ) 
+                        }
+                        
                     </div>
                 </div>
             </div>
@@ -367,4 +398,4 @@ const PatientInfoPage = () => {
     )
 }
 
-export default PatientInfoPage
+export default BookAppointmentPage

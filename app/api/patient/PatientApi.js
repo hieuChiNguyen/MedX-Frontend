@@ -2,14 +2,15 @@ import axiosClient from '../axiosClient'
 import axiosJwt from '../axiosJwt'
 
 const patientApi = {
+    // Admin, Receptionist
     createNewPatient: async (input) => {
         const response = await axiosJwt.post('/api/v1/patient/create', input)
         return response
     },
 
-    // Admin
-    getAllPatients: async (gender) => {
-        const response = await axiosJwt.get(`/api/v1/patients?gender=${gender}`)
+    // Admin, Receptionist
+    getAllPatients: async (gender, province, district, ward) => {
+        const response = await axiosJwt.get(`/api/v1/patients?gender=${gender}&province=${province}&district=${district}&ward=${ward}`)
         return response
     },
 
@@ -37,7 +38,7 @@ const patientApi = {
     },
 
     uploadAvatar: async (data) => {
-        const response = await axiosClient.put('/api/v1/user/update-avatar', data)
+        const response = await axiosClient.patch('/api/v1/user/update-avatar', data)
         return response
     },
 

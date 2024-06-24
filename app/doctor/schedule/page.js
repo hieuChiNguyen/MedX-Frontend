@@ -5,10 +5,11 @@ import TimeSlotEnum from "../../../utils/enum/time_slot.enum"
 import { useSelector } from 'react-redux';
 import { RoleEnum } from '../../../utils/enum/role.enum';
 import { useRouter } from 'next/navigation';
-import scheduleApi from '../../api/schedule/scheduleApi'
+import scheduleApi from '../../api/schedule/ScheduleApi'
 import toasts from '../../components/common/Toast'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { addDays, getDay  } from 'date-fns'
 
 const DoctorSchedulePage = () => {
     const router = useRouter()
@@ -35,7 +36,6 @@ const DoctorSchedulePage = () => {
     const fetchDoctorSchedules = async () => {
         try {
             const response = await scheduleApi.getSchedulesOfDoctor(auth.doctorId);
-            // Xử lý dữ liệu trả về từ API và cập nhật state với danh sách lịch khám của bác sĩ
             setDoctorSchedules(response.data);
         } catch (error) {
             console.error('Failed to fetch doctor schedules:', error);
@@ -48,37 +48,42 @@ const DoctorSchedulePage = () => {
 
     const handleSlotClick = (index) => {
         const updatedSlots = [...slotStatus];
-        // Đảo ngược trạng thái isSelected của slot khi được nhấp vào
+        // Đảo ngược trạng thái isSelected của slot khi click
         updatedSlots[index].isSelected = !updatedSlots[index].isSelected;
-        // Cập nhật state với mảng đã cập nhật
         setSlotStatus(updatedSlots);
     };
-
 
     const getWeekdays = () => {
         const weekdays = [];
         const currentDate = new Date();
-        let day = currentDate.getDay(); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
-        
-        // Nếu ngày hiện tại là Thứ bảy (6), Chủ nhật (0), chuyển đến thứ 2 gần nhất sau
-        if (day === 0) {
-            currentDate.setDate(currentDate.getDate() + 1)
-        } else if (day === 6) {
-            currentDate.setDate(currentDate.getDate() + 2)
+        let dayOfWeek = getDay(currentDate); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
+        let startOfWeek;
+
+        if (dayOfWeek === 6 ) {
+            startOfWeek = addDays(currentDate, 2); // Next Monday
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
+        } else if (dayOfWeek === 0) {
+            startOfWeek = addDays(currentDate, 1); // Next Monday
+            for (let i = 0; i < 5; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
         } else {
-            // Nếu ngày hiện tại là từ Thứ 3 đến Thứ 6
-            const daysToMonday = (day === 1) ? 0 : (8 - day); // Tính số ngày còn lại đến Thứ 2 tuần sau
-            currentDate.setDate(currentDate.getDate() + daysToMonday);
+            const daysUntilFriday = 5 - dayOfWeek; // Calculate days until next Friday
+            startOfWeek = currentDate;
+            // endOfWeek = addDays(currentDate, daysUntilFriday);
+            for (let i = 0; i <= daysUntilFriday; i++) {
+                const date = new Date(startOfWeek);
+                date.setDate(startOfWeek.getDate() + i);
+                weekdays.push(date);
+            }
         }
-        
-        // Lặp qua các ngày từ Thứ 2 đến Thứ 6
-        for (let i = 0; i < 5; i++) {
-            // Tính toán ngày của mỗi ngày trong tuần
-            const date = new Date(currentDate)
-            date.setDate(currentDate.getDate() + i)
-            weekdays.push(date)
-        }
-        
+    
         return weekdays;
     };
     
@@ -102,7 +107,7 @@ const DoctorSchedulePage = () => {
             setErrorMessage('Chưa chọn khung giờ nào.')
         }
     
-        // Kiểm tra nếu ngày không được cung cấp
+        // Validate nếu ngày không được cung cấp
         if (!schedule.date) {
             setErrorMessage('Chưa chọn ngày trong tuần.')
         }
@@ -119,25 +124,24 @@ const DoctorSchedulePage = () => {
             try {
                 let response = await scheduleApi.createNewSchedules(input)
     
-                // Fail to create new patient
+                // Fail to create new schedules
                 if (response.message !== 'OK') {
                     setErrorMessage(response.message)
                 }
     
-                // Success to create new patient
+                // Success to create new schedules
                 if (response.data && response.message === 'OK') {
                     toasts.successTopRight('Bác sĩ đăng ký lịch khám thành công.')
-                    setTimeout(function () {
-                        router.push('/doctor')
-                    }, 1500)
+                    setErrorMessage('')
+                    fetchDoctorSchedules()
+                    // setTimeout(function () {
+                    //     router.push('/doctor')
+                    // }, 1500)
                 }
             } catch (error) {
                 console.log(error)
             }
         }
-
-        // Reset các khung giờ sau khi đăng ký
-        // setSlotStatus(timeSlots.map(slot => ({ timeSlot: slot, isSelected: false })))
     }
 
     const groupedSchedules = {};
@@ -156,7 +160,6 @@ const DoctorSchedulePage = () => {
             <Header />
             <div className="flex flex-col w-[80%] mx-auto items-center justify-center mb-10">
                 <p className="p-1 mx-auto text-blue-600 font-semibold text-2xl mt-5">Đăng kí lịch khám trong tuần</p>
-                {/* <p className="text-16 text-red-400 font-medium">*Chú ý: Đăng lý lịch với từng ngày trong tuần</p> */}
                 <div className="relative inline-block my-3">
                     <select 
                         className="block appearance-none w-full rounded-lg bg-white border border-gray-300 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-blue-600"
@@ -196,7 +199,7 @@ const DoctorSchedulePage = () => {
                     className='p-3 w-60 rounded-2xl bg-blue-500 text-white font-semibold hover:bg-opacity-80'
                     type="submit"
                     onClick={() => {
-                        console.log({ selectedSlots: slotStatus.filter(slot => slot.isSelected)})
+                        // console.log({ selectedSlots: slotStatus.filter(slot => slot.isSelected)})
                         registerSchedule()
                     }}
                 >

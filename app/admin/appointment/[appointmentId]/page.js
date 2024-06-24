@@ -1,12 +1,13 @@
 'use client'
 import React, { useState, useEffect } from 'react'
-import AdminSideBar from '../../../components/common/admin/AdminSideBar';
+import AdminSideBar from '../../../components/common/admin/AdminSideBar'
 import doctorApi from '../../../api/doctor/DoctorApi'
-import toasts from '../../../components/common/Toast';
+import toasts from '../../../components/common/Toast'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import { useRouter } from 'next/navigation'
-import appointmentApi from '../../../api/appointment/AppointmentApi';
+import appointmentApi from '../../../api/appointment/AppointmentApi'
+import scheduleApi from '../../../api/schedule/ScheduleApi'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { format } from 'date-fns'
@@ -14,6 +15,9 @@ import TimeSlotEnum from '../../../../utils/enum/time_slot.enum'
 import Image from 'next/image';
 import assets from '../../../../assets'
 import { useSelector } from 'react-redux'
+import '../../datepicker.css'
+import formatDateUntilSecond from '../../../../utils/ChangeDate'
+import { parse, isWithinInterval } from 'date-fns';
 
 const AppointmentInformationPage = ({params}) => {
   const appointmentId = params.appointmentId;
@@ -27,7 +31,12 @@ const AppointmentInformationPage = ({params}) => {
   const [selectedPosition, setSelectedPosition] = useState('')
   const [selectedDate, setSelectedDate] = useState(null)
   const timeSlots = Object.values(TimeSlotEnum)
+  const [remainTimeSlots, setRemainTimeSlots] = useState([])
   const [suitableDoctors, setSuitableDoctors] = useState([])
+  const [remainSchedule, setRemainSchedule] = useState({
+    date: '',
+    doctorId: ''
+  })
 
   const [input, setInput] = useState({
     specialtyId: '',
@@ -91,41 +100,12 @@ const AppointmentInformationPage = ({params}) => {
     } catch (error) {
       console.error('Error fetching positions:', error);
     }
-};
+  };
 
   useEffect(() => {
       getListSpecialties()
       getListPositions()
   }, [])
-
-  const getWeekdays = () => {
-    const weekdays = [];
-    const currentDate = new Date();
-    let day = currentDate.getDay(); // Lấy ngày hiện tại trong tuần (0 là Chủ nhật, 1 là Thứ 2, ..., 6 là Thứ 7)
-
-    // Nếu ngày hiện tại không phải thứ 2 (1), chuyển đến Thứ 2 (1)
-    // if (day !== 1) {
-    //     currentDate.setDate(currentDate.getDate() - day + (day === 0 ? -6 : 1));
-    // }
-
-    if (day === 6 || day === 0) {
-        currentDate.setDate(currentDate.getDate() + (1 + 7 - day)); // Điều chỉnh ngày cho thứ 2 của tuần tiếp theo
-    } else {
-        currentDate.setDate(currentDate.getDate() - day + (day === 0 ? -6 : 1));
-    }
-    
-    // Lặp qua các ngày từ Thứ 2 đến Thứ 6
-    for (let i = 0; i < 5; i++) {
-        // Tính toán ngày của mỗi ngày trong tuần
-        const date = new Date(currentDate);
-        date.setDate(currentDate.getDate() + i); // Di chuyển đến ngày cụ thể trong tuần
-        weekdays.push(date); // Thêm ngày vào mảng
-    }
-    
-    return weekdays;
-  };
-
-  const weekdays = getWeekdays();
 
   const findSuitableDoctors = async () => {
     try {
@@ -155,8 +135,6 @@ const AppointmentInformationPage = ({params}) => {
     createBy: auth.id
   };
 
-  console.log('check input::', input);
-
   const addDoctorToAppointment = async (doctorId) => {
     try {
         appointmentDoctor = {
@@ -169,20 +147,85 @@ const AppointmentInformationPage = ({params}) => {
         let response = await appointmentApi.addDoctorToAppointment(appointmentDoctor)
 
         // Fail to create new doctor schedule
-        if (response.data && response.errCode !== 0) {
+        if (response.errCode !== 0) {
             toasts.errorTopRight('Thêm bác sĩ thất bại.')
         }
 
         // Success to create new doctor schedule
         if (response.data && response.errCode === 0) {
             toasts.successTopRight('Thêm bác sĩ vào lịch khám thành công.')
-            setInput('')
+            // setInput('')
+            setInput(prevInput => ({
+              ...prevInput,
+              date: '',
+              timeSlot: ''
+            }));
             setTimeout(function () {
                 router.push('/admin/appointment')
             }, 1500)
         }
     } catch (error) {
         console.log(error)
+    }
+  }
+
+  useEffect(() => {
+    if (remainSchedule.date) {
+        const getRemainSchedule = async () => {
+            try {
+                // console.log('chek remain::', remainSchedule)
+                const response = await scheduleApi.getRemainScheduleByDate(remainSchedule)
+                setRemainTimeSlots(response.data)
+            } catch (error) {
+                console.error('Error fetching remain schedules:', error)
+            }
+        }
+        getRemainSchedule()
+    }   
+  }, [remainSchedule.date])
+
+  // console.log('check console::', appointment);
+
+  // Hàm parseTime chuyển đổi chuỗi giờ (hh:mm) thành đối tượng có giờ và phút
+  const parseTime = (timeString) => {
+    const [hours, minutes] = timeString.split(':').map(part => parseInt(part, 10));
+    return { hours, minutes };
+  }
+
+  const filterTimeSlots = () => {
+    if (!appointment?.expectedTime) return timeSlots;
+  
+    const [startTime, endTime] = appointment.expectedTime.split('-').map(parseTime);
+  
+    return timeSlots.filter((timeSlot) => {
+      const [slotStartTime, slotEndTime] = timeSlot.split('-').map(parseTime);
+      const slotStart = new Date(2000, 0, 1, slotStartTime.hours, slotStartTime.minutes);
+      const slotEnd = new Date(2000, 0, 1, slotEndTime.hours, slotEndTime.minutes);
+  
+      const expectedStart = new Date(2000, 0, 1, startTime.hours, startTime.minutes);
+      const expectedEnd = new Date(2000, 0, 1, endTime.hours, endTime.minutes);
+  
+      return isWithinInterval(slotStart, { start: expectedStart, end: expectedEnd }) &&
+             isWithinInterval(slotEnd, { start: expectedStart, end: expectedEnd });
+    });
+  };
+  
+  const filteredTimeSlots = filterTimeSlots();  
+
+  const cancelAppointment = async () => {
+    try {
+      const response = await appointmentApi.cancelAppointment(appointmentId)
+      if (response.errCode === 0) {
+        toasts.successTopRight('Hủy lịch khám thành công.')
+        setTimeout(function () {
+          router.push('/admin/appointment')
+        }, 2000)
+      } else {
+        toasts.errorTopRight('Hủy lịch khám thất bại.')
+      }
+      
+    } catch (error) {
+      console.error('Error cancel appointment:', error);
     }
   }
 
@@ -194,6 +237,23 @@ const AppointmentInformationPage = ({params}) => {
         <nav className='text-lg flex items-center justify-between content-center '>
             <div className=' font-semibold text-xl text-gray-800 flex space-x-4 items-center my-5'>
                 <span>Thông tin chi tiết lịch khám</span>
+            </div>
+
+            <div 
+              className='flex space-x-5 md:space-x-10 text-gray-500 items-center content-center text-base cursor-pointer'
+              onClick={cancelAppointment}
+            >
+                <div
+                    className='px-4 py-2 bg-red-100 rounded-md flex items-center space-x-2 text-red-500 hover:bg-red-200'
+                    href='/admin/patient/create'
+                >
+                    <svg  className='h-5 w-5 fill-red-500' viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M20.5001 6H3.5" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M18.8332 8.5L18.3732 15.3991C18.1962 18.054 18.1077 19.3815 17.2427 20.1907C16.3777 21 15.0473 21 12.3865 21H11.6132C8.95235 21 7.62195 21 6.75694 20.1907C5.89194 19.3815 5.80344 18.054 5.62644 15.3991L5.1665 8.5" stroke="#1C274C" stroke-width="1.5" stroke-linecap="round"/>
+                      <path d="M6.5 6C6.55588 6 6.58382 6 6.60915 5.99936C7.43259 5.97849 8.15902 5.45491 8.43922 4.68032C8.44784 4.65649 8.45667 4.62999 8.47434 4.57697L8.57143 4.28571C8.65431 4.03708 8.69575 3.91276 8.75071 3.8072C8.97001 3.38607 9.37574 3.09364 9.84461 3.01877C9.96213 3 10.0932 3 10.3553 3H13.6447C13.9068 3 14.0379 3 14.1554 3.01877C14.6243 3.09364 15.03 3.38607 15.2493 3.8072C15.3043 3.91276 15.3457 4.03708 15.4286 4.28571L15.5257 4.57697C15.5433 4.62992 15.5522 4.65651 15.5608 4.68032C15.841 5.45491 16.5674 5.97849 17.3909 5.99936C17.4162 6 17.4441 6 17.5 6" stroke="#1C274C" stroke-width="1.5"/>
+                    </svg>
+                    <span>Hủy lịch khám</span>
+                </div>
             </div>
         </nav>
 
@@ -218,6 +278,7 @@ const AppointmentInformationPage = ({params}) => {
                           id="fullName"
                           placeholder="Nguyễn Văn A"
                           value={appointment?.patientAppointment?.fullName}
+                          disabled
                         />
                       </div>
                     </div>
@@ -236,6 +297,7 @@ const AppointmentInformationPage = ({params}) => {
                         id="phone"
                         placeholder="+84 *** *** ***"
                         defaultValue={appointment?.patientAppointment?.phone}
+                        disabled
                       />
                     </div>
                   </div>
@@ -255,6 +317,7 @@ const AppointmentInformationPage = ({params}) => {
                           id="appointmentDate"
                           placeholder="Ngày hẹn"
                           defaultValue={formatDate(appointment?.appointmentDate)}
+                          disabled
                         />
                       </div>
                     </div>
@@ -273,6 +336,7 @@ const AppointmentInformationPage = ({params}) => {
                         id="expectedTime"
                         placeholder="xx:xx AM - yy:yy AM"
                         defaultValue={appointment?.expectedTime}
+                        disabled
                       />
                     </div>
                   </div>
@@ -292,6 +356,7 @@ const AppointmentInformationPage = ({params}) => {
                           id="specialty"
                           placeholder="Chuyên khoa"
                           defaultValue={appointment?.specialtyAppointment?.nameVi}
+                          disabled
                         />
                       </div>
                     </div>
@@ -310,6 +375,7 @@ const AppointmentInformationPage = ({params}) => {
                         id="expectedPosittion"
                         placeholder="Chức danh bác sĩ"
                         defaultValue={appointment?.expectedPosition}
+                        disabled
                       />
                     </div>
                   </div>
@@ -328,7 +394,8 @@ const AppointmentInformationPage = ({params}) => {
                           name="healthInsurance"
                           id="healthInsurance"
                           placeholder="Bảo hiểm y tế"
-                          defaultValue={appointment?.healthInsurance === 1 ? 'Có' : 'Không'}
+                          defaultValue={appointment?.healthInsurance === true ? 'Có' : 'Không'}
+                          disabled
                         />
                       </div>
                     </div>
@@ -347,6 +414,27 @@ const AppointmentInformationPage = ({params}) => {
                         id="status"
                         placeholder="Trạng thái"
                         defaultValue={appointment?.status}
+                        disabled
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <label
+                      className="mb-3 block text-16 font-medium text-blue-600"
+                      htmlFor="createdAt"
+                    >
+                      Thời gian đặt lịch
+                    </label>
+                    <div className="relative">
+                      <input
+                        className="w-full rounded border bg-blue-50 py-3 px-2 text-black focus:border-blue-600 focus-visible:outline-none"
+                        type='text'
+                        name="createdAt"
+                        id="createdAt"
+                        placeholder="Thời gian đặt lịch"
+                        defaultValue={formatDateUntilSecond(appointment?.createdAt)}
+                        disabled
                       />
                     </div>
                   </div>
@@ -366,22 +454,17 @@ const AppointmentInformationPage = ({params}) => {
                         rows={6}
                         placeholder="Sơ lược về bác sĩ"
                         defaultValue={appointment?.examReason}
+                        disabled
                       ></textarea>
                     </div>
                   </div>
 
                   <div className="flex justify-end gap-5">
                     <button
-                      className="flex justify-center rounded border border-stroke py-2 px-6 font-medium text-black hover:bg-gray-100"
-                      type="submit"
-                    >
-                      Sửa
-                    </button>
-                    <button
                       className="flex justify-center rounded bg-blue-400 py-2 px-6 font-medium text-gray hover:bg-opacity-80"
                       type="submit"
                     >
-                      Lưu
+                      Sửa
                     </button>
                   </div>
                 </form>
@@ -478,7 +561,7 @@ const AppointmentInformationPage = ({params}) => {
                           }}
                       >
                           <option disabled hidden selected value=''>Chọn khung giờ</option>
-                          {timeSlots?.map((timeSlot) => (
+                          {filteredTimeSlots?.map((timeSlot) => (
                               <option key={timeSlot} value={timeSlot}>
                                   {timeSlot}
                               </option>
@@ -518,7 +601,7 @@ const AppointmentInformationPage = ({params}) => {
                             }}
                             dateFormat="dd-MM-yyyy"
                             showPopperArrow={true}
-                            className='w-60 rounded-lg px-4 py-3 text-sm outline-none text-white bg-pink-600/70 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
+                            className='custom-datepicker w-60 rounded-lg px-4 py-3 text-sm outline-none text-white bg-pink-600/70 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 cursor-pointer'
                           />
                       </div>
                       <span className='absolute top-0 right-0 m-3 pointer-events-none text-white'>
@@ -558,13 +641,13 @@ const AppointmentInformationPage = ({params}) => {
                 {suitableDoctors.map((doctor, index) => (
                   <div className='flex flex-row w-full p-3 gap-20 border shadow-md rounded-lg' key={index}>
                     <div className='flex flex-row gap-10 bol'>
-                      <Image sizes={20} src={assets.images.avatar} className='rounded-full w-32 h-32' alt='Avatar'/>
+                      <Image sizes={20} src={assets.images.avatar} className='rounded-full w-28 h-28' alt='Avatar'/>
                       <div className='flex flex-col gap-4'>
                         <p className='text-blue-600 font-semibold'>{doctor?.position} {doctor?.doctorInformation?.fullName}</p>
-                        <p>{doctor?.doctorSpecialty?.nameVi}</p>
+                        <p>Chuyên khoa: {doctor?.doctorSpecialty?.nameVi}</p>
                         <button 
                           type='button' 
-                          className='bg-blue-400 hover:bg-opacity-90 rounded-lg py-2 px-4'
+                          className='bg-blue-400 hover:bg-opacity-90 rounded-lg py-2 px-2'
                           onClick={() => addDoctorToAppointment(doctor.id) }
                         >
                           Thêm vào lịch khám
@@ -581,28 +664,32 @@ const AppointmentInformationPage = ({params}) => {
                       <div className="relative inline-block my-3">
                             <select 
                                 className="block appearance-none w-full text-sm rounded-lg bg-white border border-gray-300 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-blue-600"
+                                onChange={(e) =>  {     
+                                  setRemainSchedule({ doctorId: doctor.id, date: format(e.target.value, 'yyyy-MM-dd')})}
+                                }   
+                                value={remainSchedule.date} 
+                                name='date'
+                                id='date'
                             >
                                 <option value='' disabled hidden selected>
                                     Chọn ngày trong tuần
                                 </option>
-                                {weekdays.map((weekday, index) => (
-                                <option key={index} id='date' value={formatDate(weekday)}>
-                                    {weekday.toLocaleDateString('vi', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                                <option id='date' value={selectedDate}>
+                                    {selectedDate.toLocaleDateString('vi', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'})}
                                 </option>
-                                ))}
                             </select>
                             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
                                 <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M5 7l5 5 5-5z" /></svg>
                             </div>
                         </div>
         
-                      <div className='grid grid-cols-4 gap-4'>
-                          {timeSlots.map((timeSlot, index) => (
+                      <div className='grid grid-cols-4 gap-4 w-650 h-fit'>
+                          {remainTimeSlots.map((timeSlot, index) => (
                               <div
                                   key={index}
                                   className='bg-gray-200 p-2 font-semibold text-sm cursor-pointer rounded-lg'
                               >
-                                  {timeSlot}
+                                  {timeSlot.timeSlot}
                               </div>
                           ))}
                       </div>
