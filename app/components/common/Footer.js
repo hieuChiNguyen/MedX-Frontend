@@ -55,7 +55,7 @@ const Footer = () => {
                 <div className='flex flex-col gap-4 text-white'>
                     <h3 className='text-lg font-semibold'>Liên hệ</h3>
                     <div className='flex flex-col gap-1'>
-                        <p>Call : 0969871888</p>
+                        <p>Call : 1900 1001</p>
                         <p>Email: nguyenchihieu1707@gmail.com</p>
                         <p>Address: Số 1 Giải Phóng</p>
                         <div className='flex flex-row gap-4'>

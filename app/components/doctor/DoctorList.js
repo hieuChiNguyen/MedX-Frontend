@@ -11,9 +11,9 @@ const DoctorsList = ({ listDoctors }) => {
                 <div key={index} className='flex flex-col w-fit rounded-lg overflow-hidden text-center my-5'>
                     {
                         doctor?.doctorInformation?.avatar !== null ? (
-                            <img width={20} height={20} src={doctor?.doctorInformation?.avatar} alt='Doctor Card' className='w-64 h-72 mx-auto'/>
+                            <img width={20} height={20} src={doctor?.doctorInformation?.avatar} alt='Doctor Card' className='w-72 h-72 mx-auto'/>
                         ) : (
-                            <Image width={300} height={300} src={assets.images.doctorCard} alt='Doctor Card' />
+                            <Image width={300} height={300} src={assets.images.doctorCard} alt='Doctor Card' className='w-72 h-72 mx-auto'/>
                         )    
                     }
                     {/* <Image src={assets.images.doctorCard} alt='Doctor Card' /> */}

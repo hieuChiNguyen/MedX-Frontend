@@ -24,7 +24,7 @@ const Header = () => {
                         </div>
                         <div className='flex flex-col gap-1'>
                             <p className='font-semibold'>Khẩn cấp</p>
-                            <p className='text-blue-400'>0969871888</p>
+                            <p className='text-blue-400'>1900 1001</p>
                         </div>
                     </div>
 
