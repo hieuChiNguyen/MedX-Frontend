@@ -112,7 +112,7 @@ const HomePage = () => {
                         </div>
                         <Link href='/about' className='text-center justify-center mx-auto'>
                             <div className='flex flex-row gap-1'>
-                                <p className='text-blue-400'>Xem thêm</p>
+                                <p className='text-blue-400 hover:underline'>Xem thêm</p>
                                 <i className='fa-sharp fa-solid fa-arrow-right text-blue-800 '></i>
                             </div>
                         </Link>
@@ -134,7 +134,7 @@ const HomePage = () => {
 
                     <Link href='/doctors' className='text-center justify-center mx-auto'>
                         <div className='flex flex-row gap-1'>
-                            <p className='text-blue-400'>Xem thêm</p>
+                            <p className='text-blue-400 hover:underline'>Xem thêm</p>
                             <i className='fa-sharp fa-solid fa-arrow-right text-blue-800 '></i>
                         </div>
                     </Link>
@@ -152,7 +152,7 @@ const HomePage = () => {
 
                     <Link href='/specialties' className='text-center justify-center mx-auto'>
                         <div className='flex flex-row gap-1'>
-                            <p className='text-blue-400'>Xem thêm</p>
+                            <p className='text-blue-400 hover:underline'>Xem thêm</p>
                             <i className='fa-sharp fa-solid fa-arrow-right text-blue-800 '></i>
                         </div>
                     </Link>

@@ -182,7 +182,7 @@ const DoctorInformationPage = ({params}) => {
                     />
                   </div>
 
-                  <div className="mb-6">
+                  {/* <div className="mb-6">
                     <label
                       className="mb-3 block text-16 font-medium text-blue-600"
                       htmlFor="description"
@@ -199,9 +199,9 @@ const DoctorInformationPage = ({params}) => {
                         defaultValue={doctor?.description}
                       ></textarea>
                     </div>
-                  </div>
+                  </div> */}
 
-                  <div className="flex justify-end gap-5">
+                  {/* <div className="flex justify-end gap-5">
                     <button
                       className="flex justify-center rounded border border-stroke py-2 px-6 font-medium text-black hover:bg-gray-100"
                       type="submit"
@@ -214,7 +214,7 @@ const DoctorInformationPage = ({params}) => {
                     >
                       Lưu
                     </button>
-                  </div>
+                  </div> */}
                 </form>
               </div>
             </div>

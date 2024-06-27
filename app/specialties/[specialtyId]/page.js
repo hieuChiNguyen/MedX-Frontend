@@ -121,7 +121,7 @@ const SpecialtyDetailPage = ({ params }) => {
     <main>
       <Header />
       <Navbar />
-      <section className="container mx-auto mt-5">
+      <section className="container mx-auto mt-5 w-[80%]">
         <h1 className="text-2xl font-semibold mb-2 text-blue-500">{specialty?.nameVi}</h1>
         <p className='font-medium text-16'>{specialty?.description}</p>
 

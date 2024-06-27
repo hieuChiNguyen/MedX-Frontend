@@ -6,6 +6,9 @@ import { useSelector } from 'react-redux';
 import toasts from '../../components/common/Toast'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+
 
 const Footer = () => {
     const auth = useSelector((state) => state.auth)
@@ -70,9 +73,13 @@ const Footer = () => {
                 </div>
                 <div className='flex flex-col gap-4'>
                     <h3 className='text-lg font-semibold text-white'>Đóng góp ý kiến</h3>
-                    <div className='flex flex-row gap-4 py-2 px-6 bg-blue-email rounded-lg cursor-pointer' onClick={openFeedbackModal}>
+                    {/* <div className='flex flex-row gap-4 py-2 px-6 bg-blue-email rounded-lg cursor-pointer' onClick={openFeedbackModal}>
                         <p className='text-blue-950'>Gửi email góp ý</p>
                         <i className='fa-regular fa-paper-plane text-blue-950'></i>
+                    </div> */}
+                    <div className='flex flex-row gap-3 py-2 px-6 bg-blue-email rounded-lg cursor-pointer' onClick={openFeedbackModal}>
+                        <p className='text-blue-950'>Gửi email góp ý</p>
+                        <FontAwesomeIcon icon={faPaperPlane} className='text-blue-950' />
                     </div>
                 </div>
             </div>

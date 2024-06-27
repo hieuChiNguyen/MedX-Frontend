@@ -8,6 +8,8 @@ import { useSelector } from 'react-redux'
 import { useRouter } from 'next/navigation'
 import { RoleEnum } from '../../../utils/enum/role.enum'
 import Link from 'next/link'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPenToSquare, faTrash } from '@fortawesome/free-solid-svg-icons';
 import toasts from '../../components/common/Toast'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -419,12 +421,20 @@ const AdminReceptionistPage = () => {
                                 <div className='text-center'>{receptionist?.phone}</div>
                                 <div className='text-center'>{receptionist?.address}</div>
                                 <div key={index} className='text-center'>{receptionist?.gender === 'Male' ? 'Nam' : 'Nữ' }</div>
-                                <div className='text-center'>
+                                {/* <div className='text-center'>
                                     <button onClick={() => openEditModal(receptionist)} className='cursor-pointer'>
                                         <i className="fa-solid fa-pen-to-square"></i>
                                     </button>
                                     <button onClick={() => openConfirmDelete(receptionist)} className='ml-4 cursor-pointer'>
                                         <i className="fa-solid fa-trash"></i>
+                                    </button>
+                                </div> */}
+                                <div className='text-center'>
+                                    <button onClick={() => openEditModal(receptionist)} className='cursor-pointer'>
+                                        <FontAwesomeIcon icon={faPenToSquare} />
+                                    </button>
+                                    <button onClick={() => openConfirmDelete(receptionist)} className='ml-4 cursor-pointer'>
+                                        <FontAwesomeIcon icon={faTrash} />
                                     </button>
                                 </div>
                             </Link>

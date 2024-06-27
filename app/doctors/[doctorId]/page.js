@@ -117,7 +117,7 @@ const DoctorDetailPage = ({ params }) => {
                                 doctor?.doctorInformation?.avatar !== null ? (
                                     <img width={20} height={20} src={doctor?.doctorInformation?.avatar} alt='Doctor Card' className='rounded-full h-28 w-28'/>
                                 ) : (
-                                    <Image width={28} height={28} src={assets.images.doctorCard} alt='Doctor Sample' className='rounded-full h-28 w-28' />
+                                    <Image width={300} height={300} src={assets.images.doctorCard} alt='Doctor Sample' className='rounded-full h-28 w-28' />
                                 )    
                             }
                             <div className='flex flex-col gap-4'>

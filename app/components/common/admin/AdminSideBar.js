@@ -38,10 +38,10 @@ const AdminSideBar = () => {
     }
 
     return (
-        <aside className='bg-white w-1/5 py-10 pl-10 border-r border-indigo-900/20 hidden md:block '>
-            <div className=' font-bold text-2xl uppercase text-blue-500'>MedX Admin</div>
+        <aside className='bg-white w-1/5 py-10 border-r border-indigo-900/20 hidden md:block '>
+            <div className=' font-bold text-2xl uppercase text-blue-500 pl-10'>MedX Admin</div>
 
-            <div className='mt-12 flex flex-col space-y-7 text-gray-500 font-medium'>
+            <div className='mt-12 flex flex-col space-y-7 text-gray-500 font-medium pl-2'>
                 <Link
                     className={`flex flex-row gap-4 text-center w-full items-center space-x-2 py-1 group hover:border-r-2 hover:border-r-indigo-700 hover:font-semibold ${
                         selectedLink === '/admin/dashboard' ? 'font-semibold border-r-indigo-700' : ''
