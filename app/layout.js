@@ -2,7 +2,7 @@
 import { Provider } from 'react-redux'
 import { store } from '../redux/store'
 import './globals.css'
-import '../assets/font_awesome_6_pro/css/all.min.css'
+// import '../assets/font_awesome_6_pro/css/all.min.css'
 
 export const metadata = {
     title: 'MedX',
