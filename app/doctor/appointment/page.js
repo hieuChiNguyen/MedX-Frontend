@@ -5,12 +5,13 @@ import { useSelector } from 'react-redux'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import doctorApi from '../../api/doctor/DoctorApi'
+import { AppointmentStatusEnum } from '../../../utils/enum/appointment_status.enum'
 
 const DoctorAppointmentPage = () => {
     const auth = useSelector(state => state.auth)
     const [appointmentDoctors, setAppointmentDoctors] = useState([])
     const [currentPage, setCurrentPage] = useState(1);
-    const appointmentsPerPage = 2
+    const appointmentsPerPage = 3
 
     useEffect(() => {
         const fetchAppointments = async () => {
@@ -75,7 +76,9 @@ const DoctorAppointmentPage = () => {
                             </div>
                             <div className="flex-grow bg-white py-2">
                                 <p className='p-2'><strong>Mức độ ưu tiên:</strong> {appointment?.priority}</p>
-                                <Link href={`/doctor/appointment/${appointment?.appointmentId}`} className='p-2 font-semibold text-blue-400 hover:text-blue-500 hover:underline'> Cập nhật kết quả khám </Link>
+                                {/* {appointment?.doctorAppointment_appointment?.status !== AppointmentStatusEnum.CANCEL && */}
+                                <Link href={`/doctor/appointment/${appointment?.appointmentId}`} className='p-2 font-semibold text-blue-400 hover:text-blue-500 hover:underline'> Cập nhật kết quả khám </Link> 
+                                {/* } */}
                             </div>
                         </div>
                     ))}

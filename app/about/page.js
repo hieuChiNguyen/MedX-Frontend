@@ -84,7 +84,7 @@ const AboutPage = () => {
             </section>
             <section className="py-16">
                 <div className="container mx-auto">
-                    <h2 className="text-3xl font-bold text-blue-800 mb-8 text-center">Bảng giá dịch vụ</h2>
+                    <h2 className="text-3xl font-bold text-blue-800 mb-8 text-center">Bảng giá khám</h2>
                     <div className="overflow-x-auto">
                         <table className="w-full bg-white rounded-lg shadow-lg">
                             <thead>
