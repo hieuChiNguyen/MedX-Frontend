@@ -1,9 +1,8 @@
 import axios from 'axios'
 import toasts from '../components/common/Toast'
-require('dotenv').config()
 
 const axiosClient = axios.create({
-    baseURL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080',
+    baseURL: 'http://medx.io.vn:8080' || 'http://localhost:8080',
     headers: {
         'content-type': 'application/json',
         'Cache-Control': 'no-cache'
@@ -14,9 +13,11 @@ const axiosClient = axios.create({
 
 axiosClient.interceptors.response.use(
     (response) => {
+        console.log('1:',axiosClient.backendUrl);
         return response.data
     },
     (error) => {
+        console.log('2:',axiosClient.backendUrl);
         // return error.response.data
         return error.response.data
     }

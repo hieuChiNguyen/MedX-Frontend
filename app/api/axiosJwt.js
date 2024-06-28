@@ -1,9 +1,9 @@
 import axios from 'axios';
 import toasts from '../components/common/Toast';
-require('dotenv').config();
+// require('dotenv').config();
 
 const axiosJwt = axios.create({
-    baseURL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:8080',
+    baseURL: 'http://medx.io.vn:8080' || 'http://localhost:8080',
     headers: {
         'content-type': 'application/json',
         'Cache-Control': 'no-cache',
